@@ -1,18 +1,27 @@
 ﻿
 
 #include "CalibrationTool.hpp"
-
 using namespace UcitCalibrate;
-
-
 
 int main()
 {
 	////// 首先通过标定板的图像像素坐标以及对应的世界坐标，通过PnP求解相机的R&T//////
 	// 准备的是图像上的像素点
+	// 创建输出参数文件，ios：：trunc含义是有文件先删除
+	ofstream outfile("F:\\test\\calibration\\roadsideCalibration\\calibrate.txt", ios::trunc);
+
+	
+
 	CalibrationTool  m_Calibrations;
+	CalibrationTool  m_WholeCalibrations;
 	// 设置挑选点
-	vector<unsigned int> pickPointindex{ 1,3,7,9 };
+	vector<unsigned int> pickPointindex{1,3,7,9};
+	bool rasac = false;
+
+
+	// dont change wholeindex
+	vector<unsigned int> wholeindex{ 1,2,3,4,5,6,7,8,9 };
+
 	// Set pi
 	m_Calibrations.SetPi(CV_PI);
 	vector<Point2f> boxPoints;
@@ -49,6 +58,7 @@ int main()
 
 
 	m_Calibrations.PickImagePixelPoints4PnPsolve(pickPointindex, mp_images);
+	m_WholeCalibrations.PickImagePixelPoints4PnPsolve(wholeindex, mp_images);
 
 	// Step one Loading image
 	Mat sourceImage = imread("2.BMP");
@@ -118,8 +128,14 @@ int main()
 	
 	// pick points for calibration
 	m_Calibrations.PickRawGPSPoints4VectorPairs(pickPointindex, mp_Gpslong, mp_Gpslat);
+	m_WholeCalibrations.PickRawGPSPoints4VectorPairs(wholeindex, mp_Gpslong, mp_Gpslat);
+
 	// gps convert to the world coordination
 	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick);
+	m_WholeCalibrations.Gps2WorldCoord(m_WholeCalibrations.gps_longPick, m_WholeCalibrations.gps_latiPick);
+	m_WholeCalibrations.SetWorldBoxPoints();
+
+	
 	m_Calibrations.SetWorldBoxPoints();
 
 
@@ -167,9 +183,13 @@ int main()
 		        for (int c = 0; c < RT.cols; c++)
 		        {
 		            printf("Radar's RT Matrix:%f, ", RT.at<double>(r, c));
+					
 		        }
 		        printf("\n");
 	}
+	outfile << "it is a radar RT matrix first! \n" << endl;
+	outfile << RT <<"\n\n"<< endl;
+	
 
 		    printf("**************************************\n");
 			printf("**************************************\n");
@@ -205,9 +225,27 @@ int main()
 	cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
 
     //调用 pnp solve 函数
-	cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
+
+	if (rasac)
+	{
+		cv::solvePnPRansac(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
+	}
+	else
+	{
+		if (pickPointindex.size()>4)
+		{
+			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
+		}
+		else
+		{
+			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
+		}
+
+		
+	}
+
 	
-	 //cv::solvePnPRansac(worldBoxPoints, boxPoints, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
+	
 	
 	//cv::solvePnP(worldBoxPoints, boxPoints, cameraMatrix1, distCoeffs1, rvec1, tvec1, false,CV_P3P);
 	cv::Mat rvecM1(3, 3, cv::DataType<double>::type);  //旋转矩阵
@@ -242,50 +280,20 @@ int main()
 		Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
 		Mat RT_;
 		hconcat(rvecM1, tvec1, RT_);
-		cout << "RT_" << RT_ << endl;
+		cout << "Image RT_" << RT_ << endl;
+		outfile << "it is a Image RT matrix then! \n\n" << endl;
+		outfile << RT_ << endl;
 		cameraMatrix1.at<double>(0, 0) = fx;
 		cameraMatrix1.at<double>(1, 1) = fy;
 		cameraMatrix1.at<double>(0, 2) = cx;
 		cameraMatrix1.at<double>(1, 2) = cy;
 
-		// 额外增加三个点 7， 8， 9
 		
-		Mat pixelPoints = Mat::ones(3, 1, cv::DataType<double>::type);
-		Mat m_gpsextraPoint7 = Mat::ones(4, 1, cv::DataType<double>::type);
-		Mat m_gpsextraPoint8 = Mat::ones(4, 1, cv::DataType<double>::type);
-		Mat m_gpsextraPoint9 = Mat::ones(4, 1, cv::DataType<double>::type);
-
-		m_gpsextraPoint7.at<double>(0, 0) = 106.0681686401;
-		m_gpsextraPoint7.at<double>(1, 0) = 62.6369552612;
-		m_gpsextraPoint7.at<double>(2, 0) = 0;
-		
-		m_gpsextraPoint8.at<double>(0, 0) = 106.7947692871;
-		m_gpsextraPoint8.at<double>(1, 0) = 51.3835372925;
-		m_gpsextraPoint8.at<double>(2, 0) = 0;
-
-		m_gpsextraPoint9.at<double>(0, 0) = 108.2477951050;
-		m_gpsextraPoint9.at<double>(1, 0) = 48.8355941772;
-		m_gpsextraPoint9.at<double>(2, 0) = 0;
-
-		pixelPoints = cameraMatrix1 * RT_ * m_gpsextraPoint7;
-		Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
-		D_Points.at<double>(0, 0) = pixelPoints.at<double>(0, 0) / pixelPoints.at<double>(2, 0);
-		D_Points.at<double>(1, 0) = pixelPoints.at<double>(1, 0) / pixelPoints.at<double>(2, 0);
-
-		cout << "3D to 2D:   " << D_Points << endl;
-
-		Point2f raderpixelPoints;
-		raderpixelPoints.x = D_Points.at<double>(0, 0);
-		raderpixelPoints.y = D_Points.at<double>(1, 0);
-		std::string raders = "radarPoints";
-
-		circle(sourceImage, raderpixelPoints, 15, Scalar(0, 0, 255), -1, LINE_AA);
-		
-
+	
 
 		// 反推九个点投影到pixel坐标
-		vector< Point3d>::iterator iter = m_Calibrations.m_worldBoxPoints.begin();
-		for (; iter!= m_Calibrations.m_worldBoxPoints.end(); iter++)
+		vector<Point3d>::iterator iter = m_WholeCalibrations.m_worldBoxPoints.begin();
+		for (; iter!= m_WholeCalibrations.m_worldBoxPoints.end(); iter++)
 		{
 			m_gps2world.at<double>(0, 0) = iter->x;
 			m_gps2world.at<double>(1, 0) = iter->y;
@@ -301,16 +309,10 @@ int main()
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
 			std::string raders = "radarPoints";
-
-
 			circle(sourceImage, raderpixelPoints, 15, Scalar(0, 0, 255), -1, LINE_AA);
-			//putText(sourceImage, raders, Point2f(raderpixelPoints.x - 15, raderpixelPoints.y - 5), FONT_HERSHEY_PLAIN, 6, Scalar(0, 0, 255), 3, 2, 0);
 		}
 
-
-
-
-		
+		outfile.close();
 	imshow("raw image", sourceImage);
 	waitKey(0);
     system("PAUSE");
