@@ -46,9 +46,7 @@ namespace UcitCalibrate
 	
 
 		double val = m_PI / 180.0;
-		//double P1_lo[9] = { 121.30774132, 121.30775749,121.30777151,  121.30804771,121.30806281,121.30807791,  121.30838804,121.30839387,121.30841134 };  //p1,p2,p3,p4
-		//double P1_la[9] = { 31.19691151,  31.19688899, 31.19686509,   31.19705386, 31.19703155,31.19700724,   31.19728386,31.19718445, 31.19716105 };
-
+		
 		for (int i = 0; i < P1_la.size(); i++)
 		{
 			GpsWorldCoord GpsWorldtmp;
@@ -84,7 +82,8 @@ namespace UcitCalibrate
 		{
 			tmpPoint.x = m_gpsworlds[i].X;
 			tmpPoint.y = m_gpsworlds[i].Y;
-			tmpPoint.z = 0.0f;
+			// 预估测量高度为1.2f
+			tmpPoint.z = 1.2f;
 			m_worldBoxPoints.push_back(tmpPoint);
 		}
 	

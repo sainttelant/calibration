@@ -15,7 +15,7 @@ int main()
 	CalibrationTool  m_Calibrations;
 	CalibrationTool  m_WholeCalibrations;
 	// 设置挑选点
-	vector<unsigned int> pickPointindex{1,3,7,9};
+	vector<unsigned int> pickPointindex{1,2,3,4,5,6,7,8,9};
 	bool rasac = false;
 
 
@@ -88,7 +88,7 @@ int main()
 	double Gpslong4 = 121.30804771;
 	double Gpslong5 = 121.30806281;
 	double Gpslong6 = 121.30807791;
-	double Gpslong7 = 121.30838804;
+	double Gpslong7 = 121.30837822;
 	double Gpslong8 = 121.30839387;
 	double Gpslong9 = 121.30841134;
 
@@ -98,7 +98,7 @@ int main()
 	double Gpsla4 = 31.19705386;
 	double Gpsla5 = 31.19703155;
 	double Gpsla6 = 31.19700724;
-	double Gpsla7 = 31.19728386;
+	double Gpsla7 = 31.19720759;
 	double Gpsla8 = 31.19718445;
 	double Gpsla9 = 31.19716105;
 
@@ -150,15 +150,15 @@ int main()
 
 	std::map<int, Point3d> map_Measures;
 
-	Point3d p31(-2.586f, 48.8f, 0.0f);
-	Point3d p32(-5.518f, 48.8f, 0.0f);
-	Point3d p33(-2.959f, 48.8f, 0.0f);
-	Point3d p34(-2.583f, 79.2f, 0.0f);
-	Point3d p35(-5.550f, 79.2f, 0.0f);
-	Point3d p36(-3.030f, 79.2f, 0.0f);
-	Point3d p37(-2.587f, 114.0f, 0.0f);
-	Point3d p38(-5.545f, 114.0f, 0.0f);
-	Point3d p39(-3.000f, 114.0f, 0.0f);
+	Point3d p31(-2.586f, 48.8f, 1.2f);
+	Point3d p32(-5.518f, 48.8f, 1.2f);
+	Point3d p33(-2.959f, 48.8f, 1.2f);
+	Point3d p34(-2.583f, 79.2f, 1.2f);
+	Point3d p35(-5.550f, 79.2f, 1.2f);
+	Point3d p36(-3.030f, 79.2f, 1.2f);
+	Point3d p37(-2.587f, 114.0f, 1.2f);
+	Point3d p38(-5.545f, 114.0f, 1.2f);
+	Point3d p39(-3.000f, 114.0f, 1.2f);
 	map_Measures[1] = p31;
 	map_Measures[2] = p32;
 	map_Measures[3] = p33;
@@ -228,7 +228,7 @@ int main()
 
 	if (rasac)
 	{
-		cv::solvePnPRansac(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
+		cv::solvePnPRansac(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
 	}
 	else
 	{
@@ -269,7 +269,7 @@ int main()
 
 	    world_point = RT * RadarPoint;  //OK
 	    cout << "src to dst:   " << world_point << endl;
-
+		
 
 
 		// gps 转化成世界坐标之后的点
@@ -281,7 +281,7 @@ int main()
 		Mat RT_;
 		hconcat(rvecM1, tvec1, RT_);
 		cout << "Image RT_" << RT_ << endl;
-		outfile << "it is a Image RT matrix then! \n\n" << endl;
+		outfile << "it is an Image RT matrix then! \n\n" << endl;
 		outfile << RT_ << endl;
 		cameraMatrix1.at<double>(0, 0) = fx;
 		cameraMatrix1.at<double>(1, 1) = fy;
@@ -297,7 +297,8 @@ int main()
 		{
 			m_gps2world.at<double>(0, 0) = iter->x;
 			m_gps2world.at<double>(1, 0) = iter->y;
-			m_gps2world.at<double>(2, 0) = 0;
+			// 预估gps测量时的z轴高度为1.2f
+			m_gps2world.at<double>(2, 0) = 1.2f;
 			image_points = cameraMatrix1 * RT_ * m_gps2world;
 			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
 			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
@@ -309,10 +310,38 @@ int main()
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
 			std::string raders = "radarPoints";
-			circle(sourceImage, raderpixelPoints, 15, Scalar(0, 0, 255), -1, LINE_AA);
+			circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
+		}
+		// GPS test points to draw in an image
+		CalibrationTool testPoint;
+
+		vector<double> gpslos{ 121.30811344 };
+		vector<double> gpslas{ 31.19713822 };
+		testPoint.Gps2WorldCoord(gpslos, gpslas);
+		testPoint.SetWorldBoxPoints();
+		vector<Point3d>::iterator itertest = testPoint.m_worldBoxPoints.begin();
+		for (; itertest != testPoint.m_worldBoxPoints.end(); itertest++)
+		{
+			m_gps2world.at<double>(0, 0) = itertest->x;
+			m_gps2world.at<double>(1, 0) = itertest->y;
+			m_gps2world.at<double>(2, 0) = 0;
+			image_points = cameraMatrix1 * RT_ * m_gps2world;
+			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
+			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
+			D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
+			Point2f raderpixelPoints;
+			raderpixelPoints.x = D_Points.at<double>(0, 0);
+			raderpixelPoints.y = D_Points.at<double>(1, 0);
+			
+			sprintf(textbuf, "TestP");
+			putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 30, (int)raderpixelPoints.y-10), 0,1.3, Scalar(0,0,255),5);
+			circle(sourceImage, raderpixelPoints, 8, Scalar(100, 20, 0), -1, LINE_AA);
 		}
 
+
+
 		outfile.close();
+		// imwrite("F:\\test\\calibration\\roadsideCalibration\\save.jpg", sourceImage);
 	imshow("raw image", sourceImage);
 	waitKey(0);
     system("PAUSE");
