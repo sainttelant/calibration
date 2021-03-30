@@ -14,6 +14,11 @@ namespace UcitCalibrate
 		, gps_latiPick()
 		, measures_pick()
 		, imagePixel_pick()
+		, m_radarheight(0)
+		, m_cameraintrisic()
+		, m_cameraRMatrix()
+		, m_cameraTMatrix()
+		, m_cameradiff()
 	{
 
 	};
@@ -28,10 +33,34 @@ namespace UcitCalibrate
 		m_PI = pai;
 	}
 
+	void CalibrationTool::SetRadarHeight(double radar_height)
+	{
+		m_radarheight = radar_height;
+	}
+
 	void CalibrationTool::SetCoordinateOriginPoint(double longitude, double latitude)
 	{
 		m_originlongitude = longitude;
 		m_originlatitude = latitude;
+	}
+
+	void CalibrationTool::SetCameraInstrinic(double fx, double fy, double cx, double cy)
+	{
+		m_cameraintrisic = Mat::eye(3, 3, cv::DataType<double>::type);
+		m_cameraintrisic.at<double>(0, 0) = fx;
+		m_cameraintrisic.at<double>(1, 1) = fy;
+		m_cameraintrisic.at<double>(0, 2) = cx;
+		m_cameraintrisic.at<double>(1, 2) = cy;
+	}
+
+	void CalibrationTool::SetCameraDiff(double df1, double df2, double df3, double df4, double df5)
+	{
+		m_cameradiff = Mat::eye(5, 1, cv::DataType<double>::type);
+		m_cameradiff.at<double>(0, 0) = df1;
+		m_cameradiff.at<double>(1, 0) = df2;
+		m_cameradiff.at<double>(2, 0) = df3;
+		m_cameradiff.at<double>(3, 0) = df4;
+		m_cameradiff.at<double>(4, 0) = df5;
 	}
 
 
@@ -288,6 +317,82 @@ namespace UcitCalibrate
 	vector<Point3d> CalibrationTool::GetMeasureMentPoint()
 	{
 		return measures_pick;
+	}
+
+	void CalibrationTool::CameraPixel2World(Point2d m_pixels, Point3d& m_world, cv::Mat rotate33)
+	{
+		double s;
+		/////////////////////2D to 3D///////////////////////
+		cv::Mat imagepixel = cv::Mat::ones(3, 1, cv::DataType<double>::type); //u,v,1
+		imagepixel.at<double>(0, 0) = m_pixels.x;
+		imagepixel.at<double>(1, 0) = m_pixels.y;
+
+		Mat tempMat = rotate33.inv() * m_cameraintrisic.inv() * imagepixel;
+		Mat tempMat2 = rotate33.inv() * m_cameraTMatrix;
+	
+		s = m_radarheight + tempMat2.at<double>(2, 0);
+		s /= tempMat.at<double>(2, 0);
+		cout << "s : " << s << endl;
+
+		Mat camera_cordinates = -rotate33.inv() * m_cameraTMatrix;
+		Mat wcPoint = rotate33.inv() * (m_cameraintrisic.inv() * s * imagepixel - m_cameraTMatrix);
+		m_world.x = wcPoint.at<double>(0, 0);
+		m_world.y = wcPoint.at<double>(1, 0);
+		m_world.z = wcPoint.at<double>(2, 0);
+		cout << "Pixel2World :" << wcPoint << endl;
+	}
+
+	void CalibrationTool::CalibrateCamera(bool rasac, bool useRTK, vector<unsigned int> pickPoints)
+	{
+		cv::Mat rvec1(3, 1, cv::DataType<double>::type);  //旋转向量
+		cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
+		m_cameraRMatrix = Mat::zeros(3, 1, cv::DataType<double>::type);
+		m_cameraTMatrix = Mat::zeros(3, 1, cv::DataType<double>::type);
+
+		//调用 pnp solve 函数
+		if (useRTK)
+		{
+			if (rasac)
+			{
+				cv::solvePnPRansac(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
+					m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+			}
+			else
+			{
+				if (pickPoints.size() > 4)
+				{
+					cv::solvePnP(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
+						m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+				}
+				else
+				{
+					cv::solvePnP(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
+						m_cameraTMatrix, false, SOLVEPNP_P3P);
+				}
+			}
+		}
+		else
+		{
+			if (rasac)
+			{
+				cv::solvePnPRansac(measures_pick, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
+					m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+			}
+			else
+			{
+				if (pickPoints.size() > 4)
+				{
+					cv::solvePnP(measures_pick, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
+						m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+				}
+				else
+				{
+					cv::solvePnP(measures_pick, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
+						m_cameraTMatrix, false, SOLVEPNP_P3P);
+				}
+			}
+		}
+		
 	}
 
 }
