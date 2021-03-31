@@ -33,7 +33,7 @@ namespace UcitCalibrate
 		// choose selected points for calibration
 		void PickRawGPSPoints4VectorPairs(vector<unsigned int> pointsSet, std::map<int, double>&Gps_longtitude, std::map<int, double>&Gps_latitudes);
 		void PickMeasureMentValue4RadarRT(vector<unsigned int> pointsSet, std::map<int, Point3d> &measurements);
-		void PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, Point2f>& imagesPixel);
+		void PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, Point2d>& imagesPixel);
 		
 		vector<Point3d> GetMeasureMentPoint();
 		void CalibrateCamera(bool rasac,bool useRTK, vector<unsigned int> pickPoints);

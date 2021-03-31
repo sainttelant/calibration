@@ -163,14 +163,14 @@ namespace UcitCalibrate
 		}
 	}
 
-	void CalibrationTool::PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, Point2f>& imagesPixel)
+	void CalibrationTool::PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, Point2d>& imagesPixel)
 	{
 		if (pointsSet.empty())
 		{
 			return;
 		}
 		imagePixel_pick.clear();
-		std::map<int, Point2f>::iterator iter = imagesPixel.begin();
+		std::map<int, Point2d>::iterator iter = imagesPixel.begin();
 		for (int i = 0; i < pointsSet.size(); i++)
 		{
 			iter = imagesPixel.find(pointsSet[i]);

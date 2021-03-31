@@ -21,27 +21,35 @@ int main()
 	CalibrationTool  m_Calibrations;
 	CalibrationTool  m_WholeCalibrations;
 	// 设置挑选点
-	vector<unsigned int> pickPointindex{1,2,3,4,5,6,7,8,9};
+	vector<unsigned int> pickPointindex{1,2,3,4,5,6,7,8,9,10,11,12};
 	bool rasac = false;
 
 
 	// dont change wholeindex
-	vector<unsigned int> wholeindex{ 1,2,3,4,5,6,7,8,9 };
+	vector<unsigned int> wholeindex{ 1,2,3,4,5,6,7,8,9,10,11,12};
 
 	// Set pi
 	m_Calibrations.SetPi(CV_PI);
 	m_Calibrations.SetRadarHeight(1.2);
-	vector<Point2f> boxPoints;
-	std::map<int, Point2f> mp_images;
-	Point2f p1(1322.0f, 750.0f);
-	Point2f p2(1484.0f, 756.0f);
-	Point2f p3(1642.0f, 764.0f);
-	Point2f p4(1269.0f, 608.0f);
-	Point2f p5(1369.0f, 613.0f);
-	Point2f p6(1465.0f, 616.0f);
-	Point2f p7(1247.0f, 542.0f);
-	Point2f p8(1315.0f, 546.0f);
-	Point2f p9(1383.0f, 549.0f);
+	vector<Point2d> boxPoints, validPoints;
+	
+	std::map<int, Point2d> mp_images;
+	Point2d p1(1322.0f, 750.0f);
+	Point2d p2(1484.0f, 756.0f);
+	Point2d p3(1642.0f, 764.0f);
+	Point2d p4(1269.0f, 608.0f);
+	Point2d p5(1369.0f, 613.0f);
+	Point2d p6(1465.0f, 616.0f);
+	Point2d p7(1247.0f, 542.0f);
+	Point2d p8(1315.0f, 546.0f);
+	Point2d p9(1383.0f, 549.0f);
+	Point2d p10(1224.0f, 484.0f);
+	Point2d p11(1263.0f, 488.0f);
+	Point2d p12(1315.0f, 491.0f);
+	Point2d p13(1169.0f, 481.0f);
+	//Point2d p14(1270.0f, 464.0f);
+
+
 
 	boxPoints.push_back(p1);
 	boxPoints.push_back(p2);
@@ -52,6 +60,13 @@ int main()
 	boxPoints.push_back(p7);
 	boxPoints.push_back(p8);
 	boxPoints.push_back(p9);
+	boxPoints.push_back(p10);
+	boxPoints.push_back(p11);
+	boxPoints.push_back(p12);
+	boxPoints.push_back(p13);
+	//boxPoints.push_back(p14);
+
+
 
 	mp_images[1] = p1;
 	mp_images[2] = p2;
@@ -62,6 +77,12 @@ int main()
 	mp_images[7] = p7;
 	mp_images[8] = p8;
 	mp_images[9] = p9;
+	mp_images[10] = p10;
+	mp_images[11] = p11;
+	mp_images[12] = p12;
+	mp_images[13] = p13;
+	//mp_images[14] = p14;
+
 
 
 	m_Calibrations.PickImagePixelPoints4PnPsolve(pickPointindex, mp_images);
@@ -74,7 +95,7 @@ int main()
     char textbuf[256];
 
 	// draw 原始的取点
-	for (int i = 0; i < boxPoints.size(); ++i)
+	for (int i = 0; i < boxPoints.size()-1; ++i)
 	{
 		circle(sourceImage, boxPoints[i], 8, Scalar(100, 255, 0), -1, LINE_AA);
         int text_x = (int)(boxPoints[i].x - 30);
@@ -98,6 +119,12 @@ int main()
 	double Gpslong7 = 121.30837822;
 	double Gpslong8 = 121.30839387;
 	double Gpslong9 = 121.30841134;
+	double Gpslong10,Gpslong11, Gpslong12,Gpslong13, Gpslong14;
+	double Gpsla10, Gpsla11, Gpsla12, Gpsla13, Gpsla14;
+	Gpslong10 = 121.30914588;
+	Gpslong11 = 121.30914964;
+	Gpslong12 = 121.30915328;
+	Gpslong13 = 121.30914202;
 
 	double Gpsla1 = 31.19691151;
 	double Gpsla2 = 31.19688899;
@@ -108,6 +135,11 @@ int main()
 	double Gpsla7 = 31.19720759;
 	double Gpsla8 = 31.19718445;
 	double Gpsla9 = 31.19716105;
+	Gpsla10 = 31.19756502;
+	Gpsla11 = 31.19753676;
+	Gpsla12 = 31.19749911;
+	Gpsla13 = 31.19760351;
+
 
 	std::map<int, double> mp_Gpslong, mp_Gpslat;
 	mp_Gpslong[1] = Gpslong1;
@@ -119,6 +151,10 @@ int main()
 	mp_Gpslong[7] = Gpslong7;
 	mp_Gpslong[8] = Gpslong8;
 	mp_Gpslong[9] = Gpslong9;
+	mp_Gpslong[10] = Gpslong10;
+	mp_Gpslong[11] = Gpslong11;
+	mp_Gpslong[12] = Gpslong12;
+	mp_Gpslong[13] = Gpslong13;
 
 	mp_Gpslat[1] = Gpsla1;
 	mp_Gpslat[2] = Gpsla2;
@@ -129,7 +165,10 @@ int main()
 	mp_Gpslat[7] = Gpsla7;
 	mp_Gpslat[8] = Gpsla8;
 	mp_Gpslat[9] = Gpsla9;
-
+	mp_Gpslat[10] = Gpsla10;
+	mp_Gpslat[11] = Gpsla11;
+	mp_Gpslat[12] = Gpsla12;
+	mp_Gpslat[13] = Gpsla13;
 
 	
 	
@@ -166,6 +205,10 @@ int main()
 	Point3d p37(-3.000, 117.6, 1.2);
 	Point3d p38(-6.200, 117.6, 1.2);
 	Point3d p39(-9.000, 117.6, 1.2);
+	Point3d p310(-3.000, 200.0, 1.2);
+	Point3d p311(-5.800, 200.0, 1.2);
+	Point3d p312(-9.000, 200.0, 1.2);
+	Point3d p313(2.000, 200.0, 1.2);
 	map_Measures[1] = p31;
 	map_Measures[2] = p32;
 	map_Measures[3] = p33;
@@ -175,6 +218,10 @@ int main()
 	map_Measures[7] = p37;
 	map_Measures[8] = p38;
 	map_Measures[9] = p39;
+	map_Measures[10] = p310;
+	map_Measures[11] = p311;
+	map_Measures[12] = p312;
+	map_Measures[13] = p313;
 
 	m_Calibrations.PickMeasureMentValue4RadarRT(pickPointindex, map_Measures);
 
@@ -305,33 +352,23 @@ int main()
 
 			cout << "3D to 2D:   " << D_Points << endl;
 
-			Point2f raderpixelPoints;
+			Point2d raderpixelPoints;
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
+			validPoints.push_back(raderpixelPoints);
 			std::string raders = "radarPoints";
+
 			circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
 		}
 
-		//vector<Point3d>::iterator iter1 = m_WholeCalibrations.measures_pick.begin();
-		//for (; iter1 != m_WholeCalibrations.measures_pick.end(); iter1++)
-		//{
-		//	m_gps2world.at<double>(0, 0) = iter1->x;
-		//	m_gps2world.at<double>(1, 0) = iter1->y;
-		//	// 预估gps测量时的z轴高度为1.2f
-		//	m_gps2world.at<double>(2, 0) = 1.2f;
-		//	image_points = cameraMatrix1 * RT_ * m_gps2world;
-		//	Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
-		//	D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
-		//	D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
-
-		//	cout << "3D to 2D:   " << D_Points << endl;
-
-		//	Point2f raderpixelPoints;
-		//	raderpixelPoints.x = D_Points.at<double>(0, 0);
-		//	raderpixelPoints.y = D_Points.at<double>(1, 0);
-		//	std::string raders = "radarPoints";
-		//	circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
-		//}
+		// 计算标定误差
+		for (int i=0; i < validPoints.size(); ++i)
+		{
+			double error_pixel = std::abs(validPoints[i].x - boxPoints[i].x) / 2560;
+			double error_pixel_y = std::abs(validPoints[i].y - boxPoints[i].y) / 1440;
+			std::cout <<"Point:"<<i<<"\t"<< "error:X\t"<< error_pixel<<"\t"<< "error:Y\t" <<error_pixel_y<< std::endl;
+			outfile << "Point:" << i << "\t" << "error:X\t" << error_pixel << "\t" << "error:Y\t" << error_pixel_y << std::endl;
+		}
 
 
 		// GPS test points to draw in an image
@@ -350,13 +387,13 @@ int main()
 			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
 			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
 			D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
-			Point2f raderpixelPoints;
+			Point2d raderpixelPoints;
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
 			
 			sprintf(textbuf, "GpsTest");
-			putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 50, (int)raderpixelPoints.y-10), 0,1.3, Scalar(0,0,255),5);
-			circle(sourceImage, raderpixelPoints, 8, Scalar(100, 20, 0), -1, LINE_AA);
+			//putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 50, (int)raderpixelPoints.y-10), 0,1.3, Scalar(0,0,255),5);
+			//circle(sourceImage, raderpixelPoints, 8, Scalar(100, 20, 0), -1, LINE_AA);
 		}
 
 		
@@ -378,7 +415,7 @@ int main()
 		radartest2.z = 1.2;*/
 
 		radartest3.x = -9.4;
-		radartest3.y = 152.8;
+		radartest3.y = 200.8;
 		radartest3.z = 1.2;
 
 	
@@ -401,12 +438,12 @@ int main()
 			D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
 			cout << "TEST Radar 3D to 2D:   " << D_Points << endl;
 			cout << "src to dst:   " << world_point << endl;
-			Point2f raderpixelPoints;
+			Point2d raderpixelPoints;
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
 			std::string raders = "radarPoints";
 			cout << "Pixel_2D_X:\t" << raderpixelPoints.x <<"\t"<<"Pixel_2D_Y:\t"<<raderpixelPoints.y<< endl;
-			circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
+			//circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
 		}
 
 
