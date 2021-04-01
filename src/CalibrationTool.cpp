@@ -19,6 +19,9 @@ namespace UcitCalibrate
 		, m_cameraRMatrix()
 		, m_cameraTMatrix()
 		, m_cameradiff()
+		, m_RadarRT()
+		, m_cameraRMatrix33()
+		, m_cameraRTMatrix44()
 	{
 
 	};
@@ -309,11 +312,16 @@ namespace UcitCalibrate
 			0, 0, 0, 1
 			);
 
+		m_RadarRT = R_T;
 		return R_T;
 
 	}
 
-	
+	cv::Mat CalibrationTool::GetRadarRTMatrix()
+	{
+		return m_RadarRT;
+	}
+
 	vector<Point3d> CalibrationTool::GetMeasureMentPoint()
 	{
 		return measures_pick;
@@ -348,7 +356,7 @@ namespace UcitCalibrate
 		cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
 		m_cameraRMatrix = Mat::zeros(3, 1, cv::DataType<double>::type);
 		m_cameraTMatrix = Mat::zeros(3, 1, cv::DataType<double>::type);
-
+		m_cameraRMatrix33 = Mat::zeros(3, 3, cv::DataType<double>::type);
 		//调用 pnp solve 函数
 		if (useRTK)
 		{
@@ -392,7 +400,50 @@ namespace UcitCalibrate
 				}
 			}
 		}
+		cv::Rodrigues(m_cameraRMatrix, m_cameraRMatrix33);
+		hconcat(m_cameraRMatrix33, m_cameraTMatrix, m_cameraRTMatrix44);
+	}
+
+	void CalibrationTool::Pixel2Distance31(Point2d pixels, WorldDistance &Distances)
+	{
+	
+		cv::Point3d tmp;
+		CameraPixel2World(pixels, tmp, m_cameraRMatrix33);
+		cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
+		Point3d Distance_world;
+		Distance_W4.at<double>(0, 0) = tmp.x;
+		Distance_W4.at<double>(1, 0) = tmp.y;
+		Distance_W4.at<double>(2, 0) = tmp.z;
+		Distance_W4.at<double>(3, 0) = 0;
+		cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
+		radar_Dis = m_RadarRT.inv() * Distance_W4;
+		cout << "Distance:X" << radar_Dis.at<double>(0, 0) <<"\t"<< "distance:Y" << radar_Dis.at<double>(1, 0) << endl;
+		Distances.X = radar_Dis.at<double>(0, 0);
+		Distances.Y = radar_Dis.at<double>(1, 0);
+		Distances.Height = radar_Dis.at<double>(2.0);
+	}
+
+	void CalibrationTool::Distance312Pixel(WorldDistance Distances, Point2d& pixels)
+	{
+		cv::Mat RadarPoint = Mat::ones(4, 1, cv::DataType<double>::type);
+		Mat world_point = Mat::ones(4, 1, cv::DataType<double>::type);
+		Mat imagetmp = Mat::ones(3, 1, cv::DataType<double>::type);
+		RadarPoint.at<double>(0, 0) = Distances.X;
+		RadarPoint.at<double>(1, 0) = Distances.Y;
+		RadarPoint.at<double>(2, 0) = Distances.Height;
+		world_point = m_RadarRT * RadarPoint;
+		imagetmp = m_cameraintrisic * m_cameraRTMatrix44 * world_point;
+		//image_points = m_Calibrations.m_cameraintrisic * RT_ * RadarPoint;
+		Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
+		D_Points.at<double>(0, 0) = imagetmp.at<double>(0, 0) / imagetmp.at<double>(2, 0);
+		D_Points.at<double>(1, 0) = imagetmp.at<double>(1, 0) / imagetmp.at<double>(2, 0);
 		
+		
+		pixels.x = D_Points.at<double>(0, 0);
+		pixels.y = D_Points.at<double>(1, 0);
+		std::string raders = "radarPoints";
+		cout << "Pixel_2D_X:\t" << pixels.x << "\t" << "Pixel_2D_Y:\t" << pixels.y << endl;
+		//circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
 	}
 
 }

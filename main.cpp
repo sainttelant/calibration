@@ -18,8 +18,8 @@ int main()
 	
 	
 
-	CalibrationTool  m_Calibrations;
-	CalibrationTool  m_WholeCalibrations;
+	CalibrationTool  &m_Calibrations = CalibrationTool::getInstance();
+	CalibrationTool  &m_WholeCalibrations = CalibrationTool::getInstance();
 	// 设置挑选点
 	vector<unsigned int> pickPointindex{1,2,3,4,5,6,7,8,9,10,11,12};
 	bool rasac = false;
@@ -315,8 +315,7 @@ int main()
 	
 	
 	//cv::solvePnP(worldBoxPoints, boxPoints, cameraMatrix1, distCoeffs1, rvec1, tvec1, false,CV_P3P);
-	cv::Mat rvecM1(3, 3, cv::DataType<double>::type);  //旋转矩阵
-	cv::Rodrigues(m_Calibrations.m_cameraRMatrix, rvecM1);
+	
 
 
 
@@ -331,7 +330,7 @@ int main()
 		//3D to 2D////////////////////////////
 		Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
 		Mat RT_;
-		hconcat(rvecM1, m_Calibrations.m_cameraTMatrix, RT_);
+		hconcat(m_Calibrations.m_cameraRMatrix33, m_Calibrations.m_cameraTMatrix, RT_);
 		cout << "Image RT_" << RT_ << endl;
 		outfile << "it is an Image RT matrix then! \n\n" << endl;
 		outfile << RT_ << endl;
@@ -372,7 +371,7 @@ int main()
 
 
 		// GPS test points to draw in an image
-		CalibrationTool testPoint;
+		CalibrationTool &testPoint = CalibrationTool::getInstance();
 		vector<double> gpslos{ 121.30811344 };
 		vector<double> gpslas{ 31.19713822 };
 		testPoint.Gps2WorldCoord(gpslos, gpslas);
@@ -424,57 +423,31 @@ int main()
 		m_radartests.push_back(radartest1);
 		m_radartests.push_back(radartest2);*/
 		m_radartests.push_back(radartest3);
+		
 		for (int i = 0; i< m_radartests.size(); ++i)
 		{
-			RadarPoint.at<double>(0, 0) = m_radartests[i].x;
-			RadarPoint.at<double>(1, 0) = m_radartests[i].y;
-			RadarPoint.at<double>(2, 0) = m_radartests[i].z;
-			world_point = RT * RadarPoint;
-			cout << "Radar World coordinate:" <<world_point<< endl;
-			image_points = m_Calibrations.m_cameraintrisic * RT_ * world_point;
-			//image_points = m_Calibrations.m_cameraintrisic * RT_ * RadarPoint;
-			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
-			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
-			D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
-			cout << "TEST Radar 3D to 2D:   " << D_Points << endl;
-			cout << "src to dst:   " << world_point << endl;
 			Point2d raderpixelPoints;
-			raderpixelPoints.x = D_Points.at<double>(0, 0);
-			raderpixelPoints.y = D_Points.at<double>(1, 0);
+			UcitCalibrate::WorldDistance worldDistance;
+			worldDistance.X = m_radartests[i].x;
+			worldDistance.Y = m_radartests[i].y;
+			worldDistance.Height = m_radartests[i].z;
+			m_Calibrations.Distance312Pixel(worldDistance, raderpixelPoints);
 			std::string raders = "radarPoints";
 			cout << "Pixel_2D_X:\t" << raderpixelPoints.x <<"\t"<<"Pixel_2D_Y:\t"<<raderpixelPoints.y<< endl;
-			//circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
+			circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
 		}
 
 
 		outfile.close();
 
-		Point2d  m_Distancepixel(1315, 546);
-		Point3d Distance_world;
-		m_Calibrations.CameraPixel2World(m_Distancepixel, Distance_world, rvecM1);
-		
-#if 0
-		
-		//////////////////////camera_coordinates////////////////
-		// 增加camera2world Convert
-		double s;
-		/////////////////////2D to 3D///////////////////////
-		cv::Mat imagePoint_your_know = cv::Mat::ones(3, 1, cv::DataType<double>::type); //u,v,1
-		imagePoint_your_know.at<double>(0, 0) = 1315;
-		imagePoint_your_know.at<double>(1, 0) = 546;
-		Mat tempMat = rvecM1.inv() * cameraMatrix1.inv() * imagePoint_your_know;
-		Mat tempMat2 = rvecM1.inv() * tvec1;
-		double zConst = 1.2;
-		s = zConst + tempMat2.at<double>(2, 0);
-		s /= tempMat.at<double>(2, 0);
-		cout << "s : " << s << endl;
+		// 这个是计算pixel 到雷达坐标系
+		Point2d  m_Distancepixel(1319, 608);
+		circle(sourceImage, m_Distancepixel, 10, Scalar(200, 0, 255), -1, LINE_AA);	
+		UcitCalibrate::WorldDistance m_Distance;
+		m_Calibrations.Pixel2Distance31(m_Distancepixel, m_Distance);
+		sprintf(textbuf, "CeJU:(%.3f,%.3f)",m_Distance.X, m_Distance.Y);
+		putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 10), 0, 1.2, Scalar(0, 0, 255), 5);
 
-		Mat camera_cordinates = -rvecM1.inv() * tvec1;
-		Mat wcPoint = rvecM1.inv() * (cameraMatrix1.inv() * s * imagePoint_your_know - tvec1);
-		Point3f worldPoint(wcPoint.at<double>(0, 0), wcPoint.at<double>(1, 0), wcPoint.at<double>(2, 0));
-		cout << "PIxel 2D to 3D :" << worldPoint << endl;
-		
-#endif
 
 		// imwrite("F:\\test\\calibration\\roadsideCalibration\\save.jpg", sourceImage);
 	imshow("raw image", sourceImage);

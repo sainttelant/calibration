@@ -19,15 +19,30 @@ namespace UcitCalibrate
 		double Distance;
 	};
 
+	struct WorldDistance
+	{
+		double X;
+		double Y;
+		double Height;
+	};
+
 
 	class CalibrationTool
 	{
 
 	public:
-		CalibrationTool();
-		virtual ~CalibrationTool();
+		static CalibrationTool &getInstance()
+		{
+			static CalibrationTool instance;
+			return instance;
+		};
+		
 		void Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la);
 		void CameraPixel2World(Point2d m_pixels, Point3d &m_world, cv::Mat rotate33);
+
+		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系
+		void Pixel2Distance31(Point2d pixels, WorldDistance &Distances);
+		void Distance312Pixel(WorldDistance Distances, Point2d& pixels);
 		void SetWorldBoxPoints();
 		vector<Point3d> GetWorldBoxPoints(); 
 		// choose selected points for calibration
@@ -49,15 +64,21 @@ namespace UcitCalibrate
 		vector<GpsWorldCoord> GetGpsworlds();
 		// radar2 world
 		cv::Mat Get3DR_TransMatrix(const std::vector<cv::Point3d>& srcPoints, const std::vector<cv::Point3d>& dstPoints);
+		cv::Mat GetRadarRTMatrix();
 		vector<Point3d> m_worldBoxPoints;
 		vector<double> gps_longPick;
 		vector<double> gps_latiPick;
 		vector<Point3d> measures_pick;
 		vector<Point2f> imagePixel_pick;
 		cv::Mat  m_cameraRMatrix;
+		cv::Mat m_cameraRMatrix33;
 		cv::Mat  m_cameraTMatrix;
+		cv::Mat  m_cameraRTMatrix44;
 		cv::Mat  m_cameraintrisic;
+	
 	private:
+		CalibrationTool();
+		virtual ~CalibrationTool();
 		vector<GpsWorldCoord> m_gpsworlds;
 		// 用gps计算得到的数据构造以下
 		
@@ -68,6 +89,7 @@ namespace UcitCalibrate
 		double m_originlatitude;
 		double m_radarheight;	
 		cv::Mat  m_cameradiff;
+		cv::Mat  m_RadarRT;
 		
 	};
 
