@@ -322,6 +322,42 @@ namespace UcitCalibrate
 		return m_RadarRT;
 	}
 
+	cv::Mat CalibrationTool::GetCameraRT44Matrix()
+	{
+		return m_cameraRTMatrix44;
+	}
+
+	bool CalibrationTool::SetCameraRT44(cv::Mat CmRT44)
+	{
+		if (CmRT44.cols!=4 && CmRT44.rows!=4)
+		{
+			printf("Set cameraRT matrix failed!!!!!!!\n");
+			return false;
+		}
+		else
+		{
+			m_cameraRTMatrix44 = CmRT44;
+			printf("Manual Set cameraRT successful!!!!!!!\n");
+		}
+		return true;
+
+	}
+
+	bool CalibrationTool::SetRadarRT44(cv::Mat RadRT44)
+	{
+		if (RadRT44.cols != 4 && RadRT44.rows != 4)
+		{
+			printf("Set RadarRT matrix failed!!!!!!!\n");
+			return false;
+		}
+		else
+		{
+			m_RadarRT = RadRT44;
+			printf("Manual Set RadarRT successful!!!!!!!\n");
+		}
+		return true;
+	}
+
 	vector<Point3d> CalibrationTool::GetMeasureMentPoint()
 	{
 		return measures_pick;

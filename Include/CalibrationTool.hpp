@@ -65,6 +65,10 @@ namespace UcitCalibrate
 		// radar2 world
 		cv::Mat Get3DR_TransMatrix(const std::vector<cv::Point3d>& srcPoints, const std::vector<cv::Point3d>& dstPoints);
 		cv::Mat GetRadarRTMatrix();
+		cv::Mat GetCameraRT44Matrix();
+		bool SetCameraRT44(cv::Mat CmRT44);
+		bool SetRadarRT44(cv::Mat RadRT44);
+
 		vector<Point3d> m_worldBoxPoints;
 		vector<double> gps_longPick;
 		vector<double> gps_latiPick;
@@ -73,7 +77,6 @@ namespace UcitCalibrate
 		cv::Mat  m_cameraRMatrix;
 		cv::Mat m_cameraRMatrix33;
 		cv::Mat  m_cameraTMatrix;
-		cv::Mat  m_cameraRTMatrix44;
 		cv::Mat  m_cameraintrisic;
 	
 	private:
@@ -90,6 +93,7 @@ namespace UcitCalibrate
 		double m_radarheight;	
 		cv::Mat  m_cameradiff;
 		cv::Mat  m_RadarRT;
+		cv::Mat  m_cameraRTMatrix44;
 		
 	};
 
