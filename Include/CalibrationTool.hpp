@@ -33,8 +33,8 @@ namespace UcitCalibrate
 	public:
 		static CalibrationTool &getInstance()
 		{
-			static CalibrationTool instance;
-			return instance;
+			static CalibrationTool wl_UcitCalibration;
+			return wl_UcitCalibration;
 		};
 		
 		void Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la);
