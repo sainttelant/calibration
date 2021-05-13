@@ -1,7 +1,7 @@
 #include "CalibrationTool.hpp"
 namespace UcitCalibrate
 {
-
+	
 	CalibrationTool::CalibrationTool()
 		: m_PI(3.1415926535898)
 		, m_earthR(6378245)
@@ -34,6 +34,217 @@ namespace UcitCalibrate
 	void CalibrationTool::SetPi(double pai)
 	{
 		m_PI = pai;
+	}
+
+	bool CalibrationTool::ReadPickpointXml(std::string m_xmlpath,
+		std::vector<unsigned int>& pickpoints, 
+		vector<Point2d>& rawpoint, 
+		std::map<int, Point2d>& map_points, 
+		std::map<int, double>& map_long, 
+		std::map<int, double>& map_lan,
+		double& reflectheight,
+		std::map<int, Point3d>& map_Measures)
+	{
+		//读取xml文件中的参数值
+		TiXmlDocument* Document = new TiXmlDocument();
+		if (!Document->LoadFile(m_xmlpath.c_str()))
+		{
+			cout << "无法加载xml文件！" << endl;
+			cin.get();
+			return false;
+		}
+		TiXmlElement* RootElement = Document->RootElement();		//根目录
+
+		TiXmlElement* NextElement = RootElement->FirstChildElement();		//根目录下的第一个节点层
+		
+		while (NextElement != NULL)		//判断有没有读完
+		{
+			if (NextElement->ValueTStr()=="handreflectorHeight")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement != nullptr)
+				{
+					reflectheight = atof(BoxElement->GetText());
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
+
+
+
+			if (NextElement->ValueTStr() == "pickpoint")		//读到object节点
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement!=nullptr)
+				{
+					unsigned int point = atof(BoxElement->GetText());		
+					pickpoints.push_back(point);
+					BoxElement = BoxElement->NextSiblingElement();
+				}	
+			}
+			
+
+			if (NextElement->ValueTStr()=="pixelcoord")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				int count = 0;
+				Point2d temp;
+				while (BoxElement != nullptr)
+				{
+					double pixelx, pixely;
+					std::string pixel = BoxElement->GetText();
+					if (BoxElement->ValueTStr()=="xcoord")
+					{
+						pixelx = atof(pixel.c_str());
+						temp.x = pixelx;
+					}
+					else
+					{
+						pixely = atof(pixel.c_str());
+						temp.y = pixely;
+					}
+
+					pixelx = atof(pixel.c_str());
+					BoxElement = BoxElement->NextSiblingElement();
+					if (count%2!=0)
+					{
+						rawpoint.push_back(temp);
+					}
+					count += 1;
+				}
+			}
+			vector<Point3d> v_temp;
+			if (NextElement->ValueTStr()=="radarmeasure")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				int count = 0;
+				Point3d temp;
+				
+				while (BoxElement != nullptr)
+				{
+					double pixelx, pixely;
+					std::string pixel = BoxElement->GetText();
+					if (BoxElement->ValueTStr() == "xcoord")
+					{
+						pixelx = atof(pixel.c_str());
+						temp.x = pixelx;
+					}
+					else
+					{
+						pixely = atof(pixel.c_str());
+						temp.y = pixely;
+					}
+					pixelx = atof(pixel.c_str());
+					BoxElement = BoxElement->NextSiblingElement();
+					temp.z = reflectheight;
+					if (count % 2 != 0)
+					{
+						v_temp.push_back(temp);
+					}
+					count += 1;
+				}
+
+			}
+
+			for (int i=0;i<v_temp.size();++i)
+			{
+				map_Measures[i + 1] = v_temp[i];
+			}
+
+			for (int i=0;i<rawpoint.size();++i)
+			{
+				map_points[i+1] = rawpoint[i];
+			}
+
+			if (NextElement->ValueTStr() == "gps")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				vector<double> longs, lans;
+				while (BoxElement != nullptr)
+				{
+					std::string gps = BoxElement->GetText();
+					double gps_d = atof(gps.c_str());
+					if (BoxElement->ValueTStr()=="lon")
+					{
+						longs.push_back(gps_d);
+					}
+					else
+					{
+						lans.push_back(gps_d);
+					}
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+
+				for (int i=0;i<longs.size();++i)
+				{
+					map_long[i + 1] = longs[i];
+				}
+				for (int k= 0; k< lans.size();++k)
+				{
+					map_lan[k + 1] = lans[k];
+				}
+			}
+
+
+
+			NextElement = NextElement->NextSiblingElement();
+		}
+		delete Document;
+		std::cout << "完成xml的读取" << std::endl;
+		return true;
+	}
+
+	bool CalibrationTool::ReadParaXml(std::string m_strXmlPath, std::vector<BoxSize>& vecNode)
+	{
+		BoxSize* pNode = new BoxSize;
+
+		//读取xml文件中的参数值
+		TiXmlDocument* Document = new TiXmlDocument();
+		if (!Document->LoadFile(m_strXmlPath.c_str()))
+		{
+			cout << "无法加载xml文件！" << endl;
+			cin.get();
+			return false;
+		}
+		TiXmlElement* RootElement = Document->RootElement();		//根目录
+
+		TiXmlElement* NextElement = RootElement->FirstChildElement();		//根目录下的第一个节点层
+		//for(NextElement;NextElement;NextElement = NextElement->NextSiblingElement())
+		while (NextElement != NULL)		//判断有没有读完
+		{
+			if (NextElement->ValueTStr() == "object")		//读到object节点
+			{
+				//NextElement = NextElement->NextSiblingElement();
+
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement->ValueTStr() != "bndbox")		//读到box节点
+				{
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+				//索引到xmin节点
+				TiXmlElement* xminElemeng = BoxElement->FirstChildElement();
+				{
+					//分别读取四个数值
+					pNode->xMin = atof(xminElemeng->GetText());
+					TiXmlElement* yminElemeng = xminElemeng->NextSiblingElement();
+					pNode->yMin = atof(yminElemeng->GetText());
+					TiXmlElement* xmaxElemeng = yminElemeng->NextSiblingElement();
+					pNode->xMax = atof(xmaxElemeng->GetText());
+					TiXmlElement* ymaxElemeng = xmaxElemeng->NextSiblingElement();
+					pNode->yMax = atof(ymaxElemeng->GetText());
+
+					//加入到向量中
+					vecNode.push_back(*pNode);
+				}
+			}
+			NextElement = NextElement->NextSiblingElement();
+		}
+
+		//释放内存
+		delete pNode;
+		delete Document;
+		cout << "完成xml的读取" << endl;
+		return true;
+
 	}
 
 	void CalibrationTool::SetRadarHeight(double radar_height)
@@ -437,6 +648,7 @@ namespace UcitCalibrate
 			}
 		}
 		cv::Rodrigues(m_cameraRMatrix, m_cameraRMatrix33);
+		cout << "rotate33:" << m_cameraRMatrix33 << endl;
 		hconcat(m_cameraRMatrix33, m_cameraTMatrix, m_cameraRTMatrix44);
 	}
 
@@ -447,6 +659,7 @@ namespace UcitCalibrate
 		CameraPixel2World(pixels, tmp, m_cameraRMatrix33);
 		cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
 		Point3d Distance_world;
+		printf("tmp(%.3f,%.3f,%.3f)\n", tmp.x, tmp.y, tmp.z);
 		Distance_W4.at<double>(0, 0) = tmp.x;
 		Distance_W4.at<double>(1, 0) = tmp.y;
 		Distance_W4.at<double>(2, 0) = tmp.z;
@@ -456,7 +669,7 @@ namespace UcitCalibrate
 		cout << "Distance:X" << radar_Dis.at<double>(0, 0) <<"\t"<< "distance:Y" << radar_Dis.at<double>(1, 0) << endl;
 		Distances.X = radar_Dis.at<double>(0, 0);
 		Distances.Y = radar_Dis.at<double>(1, 0);
-		Distances.Height = radar_Dis.at<double>(2.0);
+		Distances.Height = radar_Dis.at<double>(2, 0);
 	}
 
 	void CalibrationTool::Distance312Pixel(WorldDistance Distances, Point2d& pixels)
@@ -468,7 +681,23 @@ namespace UcitCalibrate
 		RadarPoint.at<double>(1, 0) = Distances.Y;
 		RadarPoint.at<double>(2, 0) = Distances.Height;
 		world_point = m_RadarRT * RadarPoint;
+		// 其实m_cameraRTMatrix44 是3*4的
+		
+		if (m_cameraRTMatrix44.rows==4)
+		{
+			Mat dst;
+			int a = 3;
+			for (int i = 0; i < m_cameraRTMatrix44.rows; i++)
+			{
+				if (i != a) //第i行不是需要删除的
+				{
+					dst.push_back(m_cameraRTMatrix44.row(i)); //把message的第i行加到dst矩阵的后面
+				}
+			}
+			m_cameraRTMatrix44 = dst.clone();
+		}
 		imagetmp = m_cameraintrisic * m_cameraRTMatrix44 * world_point;
+		cout << "RTMatrix:" << m_cameraRTMatrix44 << endl;
 		//image_points = m_Calibrations.m_cameraintrisic * RT_ * RadarPoint;
 		Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
 		D_Points.at<double>(0, 0) = imagetmp.at<double>(0, 0) / imagetmp.at<double>(2, 0);

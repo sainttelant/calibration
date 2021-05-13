@@ -6,6 +6,8 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include "tinystr.h"
+#include "tinyxml.h"
 
 using namespace cv;
 using namespace std;
@@ -36,7 +38,27 @@ namespace UcitCalibrate
 			static CalibrationTool wl_UcitCalibration;
 			return wl_UcitCalibration;
 		};
+
+
+		struct BoxSize
+		{
+			int xMin;
+			int yMin;
+			int xMax;
+			int yMax;
+		};
 		
+		bool ReadParaXml(std::string m_strXmlPath, std::vector<BoxSize>& vecNode);
+
+		bool ReadPickpointXml(std::string m_xmlpath, 
+			std::vector<unsigned int>& pickpoints, 
+			vector<Point2d> &rawpoint, 
+			std::map<int, Point2d> &map_points, 
+			std::map<int, double> &map_long, 
+			std::map<int, double> &map_lan,
+			double &reflectheight,
+			std::map<int, Point3d> &map_Measures);
+
 		void Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la);
 		void CameraPixel2World(Point2d m_pixels, Point3d &m_world, cv::Mat rotate33);
 
