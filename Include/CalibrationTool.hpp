@@ -28,6 +28,12 @@ namespace UcitCalibrate
 		double Height;
 	};
 
+	struct longandlat
+	{
+		double longtitude;
+		double latitude;
+	};
+
 
 	class CalibrationTool
 	{
@@ -60,6 +66,7 @@ namespace UcitCalibrate
 			std::map<int, Point3d> &map_Measures);
 
 		void Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la);
+		void WorldCoord2Gps(vector<longandlat> &m_longandlat,vector<GpsWorldCoord> &m_gpsworld); 
 		void CameraPixel2World(Point2d m_pixels, Point3d &m_world, cv::Mat rotate33);
 
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系

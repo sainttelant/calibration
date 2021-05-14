@@ -286,16 +286,11 @@ namespace UcitCalibrate
 			return;
 		}
 		m_gpsworlds.clear();
-	
-
 		double val = m_PI / 180.0;
 		
 		for (int i = 0; i < P1_la.size(); i++)
 		{
 			GpsWorldCoord GpsWorldtmp;
-			double x;
-			double y;
-			double dis;
 			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(P1_la[i] * val)) * ((P1_lo[i] - m_originlongitude) / 360);
 			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
 			GpsWorldtmp.Distance = sqrt(GpsWorldtmp.X * GpsWorldtmp.X + GpsWorldtmp.Y * GpsWorldtmp.Y);
@@ -307,6 +302,24 @@ namespace UcitCalibrate
 		printf("******************* \n");
 		printf("******************* \n");
 		printf("******************* \n");
+	}
+
+	void CalibrationTool::WorldCoord2Gps(vector<longandlat>& m_longandlat, vector<GpsWorldCoord>& m_Gpsworld)
+	{
+		if (m_Gpsworld.empty())
+		{
+			printf("input m_gps's world coordinate error! return!");
+			return;
+		}
+
+		double val = m_PI / 180.0;
+		for (int i=0; i< m_Gpsworld.size();++i)
+		{
+			longandlat temp;
+			temp.latitude = (m_Gpsworld[i].Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
+			temp.longtitude = (m_Gpsworld[i].X * 360) / (2 * m_PI * (m_earthR_Polar * cos(temp.latitude * val))) + m_originlongitude;
+			m_longandlat.push_back(temp);
+		}
 	}
 
 	vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
