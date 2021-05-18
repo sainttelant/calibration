@@ -263,21 +263,45 @@ int main()
 			circle(sourceImage, raderpixelPoints, 6, Scalar(100, 0, 255), -1, LINE_AA);
 		}
 
-
-
-
-
 		// 计算标定误差
+		outfile << "\n" << endl;
+		outfile << "Error X not exceeding 20, while Error Y not exceeding 15 at least!!\n" << endl;
+		vector<int> index;
 		for (int i=0; i < validPoints.size(); ++i)
 		{
+		
 			double error_pixel = std::abs(validPoints[i].x - boxPoints[i].x) / 2560;
 			double error_x = std::abs(validPoints[i].x - boxPoints[i].x);
 			double error_y = std::abs(validPoints[i].y - boxPoints[i].y);
 			double error_pixel_y = std::abs(validPoints[i].y - boxPoints[i].y) / 1440;
+			if (error_x>20 || error_y>14)
+			{
+				index.push_back(i);
+			}
 			std::cout <<"Point:"<<i<<"\t"<< "error:X\t"<< error_x<<"\t"<< "error:Y\t" <<error_y<< std::endl;
 			outfile << "Point:" << i << "\t" << "error:X\t" << error_x << "\t" << "error:Y\t" << error_y << std::endl;
 		}
-
+		outfile << "\n" << endl;
+		for (int k=0;k<index.size();++k)
+		{
+			outfile << "Point:" << index[k]<<"\t's\t" << "error exceeds requirement!!" << endl;
+		}
+		outfile << "\n" << endl;
+		if (index.size()==3)
+		{
+			outfile << "there are  three points exceeding the requirement,calibration has just passed!!\n  " << endl;
+			outfile << "passed!" << endl;
+		}
+		else if (index.size()>3)
+		{
+			outfile << "calibration's accuracy didn't satisfy requirement!!!\n" << endl;
+			outfile << "calibrate failed!<<" << endl;
+		}
+		else if(index.size() < 3)
+		{
+			outfile << "calibration's accuracy  satisfy requirement,good\n" << endl;
+			outfile << "calibrate good enough!" << endl;
+		}
 
 		// GPS test points to draw in an image
 		/*CalibrationTool &testPoint = CalibrationTool::getInstance();
