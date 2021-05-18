@@ -4,6 +4,33 @@
 #include <ctime>
 using namespace UcitCalibrate;
 
+
+void Gps2WorldCoord4test(double earthR,double handleheight, \
+	longandlat m_longandlat, std::map<int, double> P1_lo, \
+	std::map<int, double> P1_la, vector<Point3d> &m_worldBoxPoints)
+{
+
+	if (P1_la.size() != P1_lo.size())
+	{
+		printf("input the longitude and latitude can't be paired!!! return");
+		return;
+	}
+	double val = CV_PI / 180.0;
+	for (int i = 1; i < P1_la.size(); i++)
+	{
+		Point3d temp3d;
+		temp3d.x = 2 * CV_PI * (earthR * cos(P1_la[i] * val)) * ((P1_lo[i] - m_longandlat.longtitude) / 360);
+		temp3d.y = 2 * CV_PI * earthR * ((P1_la[i] - m_longandlat.latitude) / 360);
+		temp3d.z = handleheight;
+		m_worldBoxPoints.push_back(temp3d);
+	}
+	printf("******************* \n");
+	
+}
+
+
+
+
 int main()
 {
 	////// 首先通过标定板的图像像素坐标以及对应的世界坐标，通过PnP求解相机的R&T//////
@@ -33,6 +60,7 @@ int main()
 	std::map<int, Point2d> mp_images;
 	std::map<int, double> mp_Gpslong, mp_Gpslat;
 
+	longandlat originallpoll;
 	// read from xml config
 	m_Calibrations.ReadPickpointXml(m_xmlpath,
 		pickPointindex,
@@ -41,17 +69,19 @@ int main()
 		mp_Gpslong,
 		mp_Gpslat,
 		reflectorheight,
-		m_Measures);
+		m_Measures,
+		originallpoll);
 
-	//set pi
+	//setpi
 	m_Calibrations.SetPi(CV_PI);
-	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
+	m_Calibrations.SetRadarHeight(reflectorheight);
 	std::vector<CalibrationTool::BoxSize> mv_results;
 	m_Calibrations.PickImagePixelPoints4PnPsolve(pickPointindex, mp_images);
 	//m_WholeCalibrations.PickImagePixelPoints4PnPsolve(wholeindex, mp_images);
 
 	// Step one Loading image
-	Mat sourceImage = imread("1.BMP");
+	Mat sourceImage = imread("1.bmp");
     // 写字
     
     char textbuf[256];
@@ -77,6 +107,8 @@ int main()
 
 	// gps convert to the world coordination
 	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick);
+
+
 	//m_WholeCalibrations.Gps2WorldCoord(m_WholeCalibrations.gps_longPick, m_WholeCalibrations.gps_latiPick);
 	//m_WholeCalibrations.SetWorldBoxPoints();
 
@@ -119,6 +151,7 @@ int main()
 	{
 		outfile << "Pick the Points:" << pickPointindex[i] << " for calibration" << endl;
 	}
+	outfile << "\n" << endl;
 	outfile << "it is a radar RT matrix first! \n" << endl;
 	outfile << RT <<"\n\n"<< endl;
 	
@@ -176,9 +209,7 @@ int main()
 		else
 		{
 			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
-		}
-
-		
+		}	
 	}
 
 	bool useRTK = true;
@@ -205,14 +236,17 @@ int main()
 		outfile << "CameraTmatrix:" << m_Calibrations.m_cameraTMatrix << "\n" << endl;
 	
 
-		// 反推九个点投影到pixel坐标
-		vector<Point3d>::iterator iter = m_Calibrations.m_worldBoxPoints.begin();
-		for (; iter!= m_Calibrations.m_worldBoxPoints.end(); iter++)
+		// 反推12个点投影到pixel坐标,以下用新构造的点来计算
+		vector<Point3d> m_fantuiceshi;
+		Gps2WorldCoord4test(6378245,reflectorheight, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
+
+		vector<Point3d>::iterator iter = m_fantuiceshi.begin();
+		for (; iter!= m_fantuiceshi.end(); iter++)
 		{
 			m_gps2world.at<double>(0, 0) = iter->x;
 			m_gps2world.at<double>(1, 0) = iter->y;
 			// 预估gps测量时的z轴高度为1.2f
-			m_gps2world.at<double>(2, 0) = 1.2f;
+			m_gps2world.at<double>(2, 0) = iter->z;
 			image_points = cameraMatrix1 * RT_ * m_gps2world;
 			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
 			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
@@ -226,21 +260,27 @@ int main()
 			validPoints.push_back(raderpixelPoints);
 			std::string raders = "radarPoints";
 
-			circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
+			circle(sourceImage, raderpixelPoints, 6, Scalar(100, 0, 255), -1, LINE_AA);
 		}
+
+
+
+
 
 		// 计算标定误差
 		for (int i=0; i < validPoints.size(); ++i)
 		{
 			double error_pixel = std::abs(validPoints[i].x - boxPoints[i].x) / 2560;
+			double error_x = std::abs(validPoints[i].x - boxPoints[i].x);
+			double error_y = std::abs(validPoints[i].y - boxPoints[i].y);
 			double error_pixel_y = std::abs(validPoints[i].y - boxPoints[i].y) / 1440;
-			std::cout <<"Point:"<<i<<"\t"<< "error:X\t"<< error_pixel<<"\t"<< "error:Y\t" <<error_pixel_y<< std::endl;
-			outfile << "Point:" << i << "\t" << "error:X\t" << error_pixel << "\t" << "error:Y\t" << error_pixel_y << std::endl;
+			std::cout <<"Point:"<<i<<"\t"<< "error:X\t"<< error_x<<"\t"<< "error:Y\t" <<error_y<< std::endl;
+			outfile << "Point:" << i << "\t" << "error:X\t" << error_x << "\t" << "error:Y\t" << error_y << std::endl;
 		}
 
 
 		// GPS test points to draw in an image
-		CalibrationTool &testPoint = CalibrationTool::getInstance();
+		/*CalibrationTool &testPoint = CalibrationTool::getInstance();
 		vector<double> gpslos{ 121.30811344 };
 		vector<double> gpslas{ 31.19713822 };
 		testPoint.Gps2WorldCoord(gpslos, gpslas);
@@ -258,11 +298,11 @@ int main()
 			Point2d raderpixelPoints;
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
-			
+
 			sprintf(textbuf, "GpsTest");
-			//putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 50, (int)raderpixelPoints.y-10), 0,1.3, Scalar(0,0,255),5);
+			putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 50, (int)raderpixelPoints.y-10), 0,1.3, Scalar(0,0,255),5);
 			circle(sourceImage, raderpixelPoints, 15, Scalar(255, 20, 20), -1, LINE_AA);
-		}
+		}*/
 
 		
 		// 手动配置的雷达点
@@ -308,11 +348,11 @@ int main()
 		circle(sourceImage, m_Distancepixel, 10, Scalar(200, 0, 255), -1, LINE_AA);	
 		UcitCalibrate::WorldDistance m_Distance;
 		m_Calibrations.Pixel2Distance31(m_Distancepixel, m_Distance);
-		sprintf(textbuf, "CeJU:(%.3f,%.3f)",m_Distance.X, m_Distance.Y);
-		putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 10), 0, 1.2, Scalar(0, 0, 255), 5);
+		sprintf(textbuf, "ceju:(%.3f,%.3f)",m_Distance.X, m_Distance.Y);
+		putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 10), 0, 1, Scalar(0, 0, 255), 3);
 
 
-		// imwrite("F:\\test\\calibration\\roadsideCalibration\\save.jpg", sourceImage);
+	imwrite("save.jpg", sourceImage);
 	imshow("raw image", sourceImage);
 	waitKey(0);
     system("PAUSE");

@@ -5,11 +5,6 @@
             <meters>1.2</meters>
  </handreflectorHeight>
 
- <originpoll>
-	    <lng>121.30727344</lng>
-	    <lat>31.19672181 </lat>
-</originpoll>
-
  <radarmeasure>
 	     <horizontalDis>-2.8</horizontalDis>
 	     <verticalDis>48.8</verticalDis>
@@ -44,7 +39,12 @@
             <index>2</index>
             <index>3</index>
             <index>4</index>
-			     <index>10</index>
+		<index>5</index>
+            <index>6</index>
+            <index>7</index>
+            <index>8</index>
+            <index>9</index>
+	     <index>10</index>
             <index>11</index>
             <index>12</index>
 

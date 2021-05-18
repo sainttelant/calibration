@@ -8,8 +8,8 @@ namespace UcitCalibrate
 		, m_earthR_Polar(6378245)
 		, m_earthrL(6378137)
 		, m_earthrS(6356752.3142)
-		, m_originlongitude(121.30727344f)
-		, m_originlatitude(31.19672181f)
+		, m_originlongitude(0)
+		, m_originlatitude(0)
 		, m_gpsworlds()
 		, m_worldBoxPoints()
 		, gps_longPick()
@@ -81,7 +81,8 @@ namespace UcitCalibrate
 		std::map<int, double>& map_long, 
 		std::map<int, double>& map_lan,
 		double& reflectheight,
-		std::map<int, Point3d>& map_Measures)
+		std::map<int, Point3d>& map_Measures,
+		longandlat& originpoll)
 	{
 		//读取xml文件中的参数值
 		TiXmlDocument* Document = new TiXmlDocument();
@@ -119,7 +120,24 @@ namespace UcitCalibrate
 					BoxElement = BoxElement->NextSiblingElement();
 				}	
 			}
-			
+			if (NextElement->ValueTStr() == "originpoll")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				double tempoll;
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr()=="lng")
+					{
+						tempoll = atof(BoxElement->GetText());
+						originpoll.longtitude = tempoll;
+					}
+					else if (BoxElement->ValueTStr()=="lat")
+					{
+						originpoll.latitude = atof(BoxElement->GetText());
+					}
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
 
 			if (NextElement->ValueTStr()=="pixelcoord")
 			{
@@ -377,7 +395,7 @@ namespace UcitCalibrate
 			tmpPoint.x = m_gpsworlds[i].X;
 			tmpPoint.y = m_gpsworlds[i].Y;
 			// 预估测量高度为1.2f
-			tmpPoint.z = 1.2f;
+			tmpPoint.z = m_radarheight;
 			m_worldBoxPoints.push_back(tmpPoint);
 		}
 	

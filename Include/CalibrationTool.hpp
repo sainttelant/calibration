@@ -63,7 +63,8 @@ namespace UcitCalibrate
 			std::map<int, double> &map_long, 
 			std::map<int, double> &map_lan,
 			double &reflectheight,
-			std::map<int, Point3d> &map_Measures);
+			std::map<int, Point3d> &map_Measures,
+			longandlat &originpoll);
 
 		void Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la);
 		void WorldCoord2Gps(vector<longandlat> &m_longandlat,vector<GpsWorldCoord> &m_gpsworld); 
