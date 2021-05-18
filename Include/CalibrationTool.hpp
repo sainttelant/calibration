@@ -82,6 +82,14 @@ namespace UcitCalibrate
 		vector<Point3d> GetMeasureMentPoint();
 		void CalibrateCamera(bool rasac,bool useRTK, vector<unsigned int> pickPoints);
 		void SetPi(double pai);
+		double rad(double d);
+		double deg(double x);
+		// 经纬度之间距离
+		double GetDistance(longandlat point1, longandlat point2);
+
+		// 计算航向角,根据经纬度
+		double CalculateHeading(longandlat point1, longandlat point2);
+
 		void SetRadarHeight(double radar_height);
 		void SetCameraInstrinic(double fx, double fy, double cx, double cy);
 		void SetCameraDiff(double df1, double df2, double df3, double df4, double df5);
@@ -117,6 +125,8 @@ namespace UcitCalibrate
 		double m_PI;
 		double m_earthR;
 		double m_earthR_Polar;
+		double m_earthrL;
+		double m_earthrS;
 		double m_originlongitude;
 		double m_originlatitude;
 		double m_radarheight;	

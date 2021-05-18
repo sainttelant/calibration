@@ -6,6 +6,8 @@ namespace UcitCalibrate
 		: m_PI(3.1415926535898)
 		, m_earthR(6378245)
 		, m_earthR_Polar(6378245)
+		, m_earthrL(6378137)
+		, m_earthrS(6356752.3142)
 		, m_originlongitude(121.30727344f)
 		, m_originlatitude(31.19672181f)
 		, m_gpsworlds()
@@ -34,6 +36,42 @@ namespace UcitCalibrate
 	void CalibrationTool::SetPi(double pai)
 	{
 		m_PI = pai;
+	}
+
+	double CalibrationTool::rad(double d)
+	{
+		return d * m_PI / 180.0;
+	}
+
+	double CalibrationTool::deg(double x)
+	{
+		return x * 180 / m_PI;
+	}
+
+	double CalibrationTool::GetDistance(longandlat point1, longandlat point2)
+	{
+		double radpoint1_lat = rad(point1.latitude);
+		double radpoint2_lat = rad(point2.latitude);
+		double a = radpoint1_lat - radpoint2_lat;
+		double b = rad(point1.longtitude) - rad(point2.longtitude);
+		double s = 2*asin(sqrt(pow(sin(a/2),2)+ \
+			cos(radpoint1_lat) * cos(radpoint2_lat) * pow(sin(b / 2), 2)));
+		s = s * m_earthrL;
+		return s;
+	}
+
+	double CalibrationTool::CalculateHeading(longandlat point1, longandlat point2)
+	{
+		double y = sin(point2.longtitude - point1.longtitude) * cos(point2.latitude);
+		double x = cos(point1.latitude) * sin(point2.latitude) - sin(point1.latitude) * cos(point2.latitude) * \
+			cos(point2.longtitude - point1.longtitude);
+		double heading = atan2(y, x);
+		heading = deg(heading);
+		if (heading < 0)
+		{
+			heading = heading + 360;
+		}
+		return heading;
 	}
 
 	bool CalibrationTool::ReadPickpointXml(std::string m_xmlpath,
