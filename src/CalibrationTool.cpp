@@ -81,6 +81,7 @@ namespace UcitCalibrate
 		std::map<int, double>& map_long, 
 		std::map<int, double>& map_lan,
 		double& reflectheight,
+		double& installheight,
 		std::map<int, Point3d>& map_Measures,
 		longandlat& originpoll)
 	{
@@ -107,7 +108,15 @@ namespace UcitCalibrate
 					BoxElement = BoxElement->NextSiblingElement();
 				}
 			}
-
+			if (NextElement->ValueTStr()=="installraderheight")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement != NULL)
+				{
+					installheight = atof(BoxElement->GetText());
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
 
 
 			if (NextElement->ValueTStr() == "pickpoint")		//¶Áµ½object½Úµã
@@ -177,19 +186,19 @@ namespace UcitCalibrate
 				
 				while (BoxElement != nullptr)
 				{
-					double pixelx, pixely;
+					double horizontal, vertical;
 					std::string pixel = BoxElement->GetText();
-					if (BoxElement->ValueTStr() == "xcoord")
+					if (BoxElement->ValueTStr() == "horizontalDis")
 					{
-						pixelx = atof(pixel.c_str());
-						temp.x = pixelx;
+						horizontal = atof(pixel.c_str());
+						temp.x = horizontal;
 					}
 					else
 					{
-						pixely = atof(pixel.c_str());
-						temp.y = pixely;
+						vertical = atof(pixel.c_str());
+						temp.y = vertical;
 					}
-					pixelx = atof(pixel.c_str());
+					
 					BoxElement = BoxElement->NextSiblingElement();
 					temp.z = reflectheight;
 					if (count % 2 != 0)

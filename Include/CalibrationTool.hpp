@@ -63,6 +63,7 @@ namespace UcitCalibrate
 			std::map<int, double> &map_long, 
 			std::map<int, double> &map_lan,
 			double &reflectheight,
+			double &installheight,
 			std::map<int, Point3d> &map_Measures,
 			longandlat &originpoll);
 

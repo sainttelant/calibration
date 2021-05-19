@@ -5,6 +5,11 @@
             <meters>1.2</meters>
  </handreflectorHeight>
 
+ <installraderheight>
+            <meters>6.0</meters>
+ </installraderheight>
+
+
  <originpoll>
 	    <lng>121.30727344</lng>
 	    <lat>31.19672181 </lat>

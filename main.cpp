@@ -54,7 +54,7 @@ int main()
 
 	// dont change wholeindex
 	vector<unsigned int> wholeindex{ 1,2,3,4,5,6,7,8,9,10,11,12 };
-	double reflectorheight;
+	double reflectorheight,raderheight;
 	std::map<int, Point3d> m_Measures;
 	vector<Point2d> boxPoints, validPoints;
 	std::map<int, Point2d> mp_images;
@@ -69,8 +69,22 @@ int main()
 		mp_Gpslong,
 		mp_Gpslat,
 		reflectorheight,
+		raderheight,
 		m_Measures,
 		originallpoll);
+
+
+	//处理measures
+	std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
+	std::map<int, Point3d>::iterator iter_end = m_Measures.end();
+	for (; iter_begin != iter_end; iter_begin++)
+	{
+		double ydist = iter_begin->second.y;
+		double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
+		iter_begin->second.y = ynew;
+		cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
+
+	}
 
 	//setpi
 	m_Calibrations.SetPi(CV_PI);
@@ -336,18 +350,21 @@ int main()
 		Mat world_point = Mat::ones(4, 1, cv::DataType<double>::type);
 		Point3d  radartest,radartest1,radartest2,radartest3;
 
+		
 
-		// 给定世界距离，画图
-		radartest3.x = -9.4;
-		radartest3.y = 200.8;
-		radartest3.z = 1.2;
+
+		radartest1.x = -4.0;
+		radartest1.y = 30.0;
+		//radartest1.y = sqrt(30 * 30 + 4.8 * 4.8);
+		radartest1.z = 1.2;
+
+		
 
 	
 		vector<Point3d> m_radartests;
-		/*m_radartests.push_back(radartest);
+	
 		m_radartests.push_back(radartest1);
-		m_radartests.push_back(radartest2);*/
-		m_radartests.push_back(radartest3);
+	
 		
 		for (int i = 0; i< m_radartests.size(); ++i)
 		{
@@ -358,8 +375,8 @@ int main()
 			worldDistance.Height = m_radartests[i].z;
 			m_Calibrations.Distance312Pixel(worldDistance, raderpixelPoints);
 			std::string raders = "radarPoints";
-			cout << "Pixel_2D_X:\t" << raderpixelPoints.x <<"\t"<<"Pixel_2D_Y:\t"<<raderpixelPoints.y<< endl;
-			//circle(sourceImage, raderpixelPoints, 10, Scalar(200, 100, 255), -1, LINE_AA);
+			cout << "给定雷达画图像:\t" << raderpixelPoints.x <<"\t"<<"Pixel_2D_Y:\t"<<raderpixelPoints.y<< endl;
+			circle(sourceImage, raderpixelPoints, 10, Scalar(200, 100, 255), -1, LINE_AA);
 		}
 
 
@@ -372,7 +389,7 @@ int main()
 		circle(sourceImage, m_Distancepixel, 10, Scalar(200, 0, 255), -1, LINE_AA);	
 		UcitCalibrate::WorldDistance m_Distance;
 		m_Calibrations.Pixel2Distance31(m_Distancepixel, m_Distance);
-		sprintf(textbuf, "ceju:(%.3f,%.3f)",m_Distance.X, m_Distance.Y);
+		sprintf(textbuf, "Dist:(%.3f,%.3f)",m_Distance.X, m_Distance.Y);
 		putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 10), 0, 1, Scalar(0, 0, 255), 3);
 
 
