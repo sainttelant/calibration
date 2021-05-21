@@ -60,6 +60,41 @@ namespace UcitCalibrate
 		return s;
 	}
 
+	void CalibrationTool::RadarSpeedHeading(RadarSpeed& m_speed, RadarHeading& m_radarhead)
+	{
+		m_radarhead.speed_value = sqrt(pow(m_speed.vx, 2) + pow(m_speed.vy, 2));
+		double m_world2radar_theta = deg(acos(m_RadarRT.at<double>(0, 0)));
+		if (m_speed.vy!=0)
+		{
+			double theta = atan(m_speed.vx / m_speed.vy);
+			
+			// 计算雷达速度的反正切
+			double m_radarrange = deg(atan(m_speed.vx / m_speed.vy));
+			cout << "雷达反正切" << m_radarrange << endl;
+			if (m_speed.vy > 0)
+			{
+				// 此时背向雷达运动
+				m_radarhead.theta = m_world2radar_theta + m_radarrange;
+			}
+			else {
+				// 此时迎面驶来
+				m_radarhead.theta = 180 + m_world2radar_theta + m_radarrange;
+			}
+		}
+		else
+		{
+			if (m_speed.vx>0)
+			{
+				m_radarhead.theta = 90 + m_world2radar_theta;
+			}
+			else
+			{
+				m_radarhead.theta = 270 + m_world2radar_theta;
+			}
+		}
+		
+	}
+
 	double CalibrationTool::CalculateHeading(longandlat point1, longandlat point2)
 	{
 		double y = sin(point2.longtitude - point1.longtitude) * cos(point2.latitude);
@@ -73,6 +108,8 @@ namespace UcitCalibrate
 		}
 		return heading;
 	}
+
+
 
 	bool CalibrationTool::ReadPickpointXml(std::string m_xmlpath,
 		std::vector<unsigned int>& pickpoints, 

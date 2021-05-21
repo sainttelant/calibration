@@ -16,31 +16,31 @@
 </originpoll>
 
  <radarmeasure>
-	     <horizontalDis>-2.8</horizontalDis>
+	     <horizontalDis>2.8</horizontalDis>
 	     <verticalDis>48.8</verticalDis>
-	     <horizontalDis>-5.8</horizontalDis>
+	     <horizontalDis>5.8</horizontalDis>
 	     <verticalDis>48.8</verticalDis>
-	     <horizontalDis>-8.6</horizontalDis>
+	     <horizontalDis>8.6</horizontalDis>
 	     <verticalDis>48.8</verticalDis>
-	     <horizontalDis>-3.0</horizontalDis>
+	     <horizontalDis>3.0</horizontalDis>
 	     <verticalDis>82.4</verticalDis>
-	     <horizontalDis>-5.6</horizontalDis>
+	     <horizontalDis>5.6</horizontalDis>
 	     <verticalDis>82.4</verticalDis>
-	     <horizontalDis>-9.0</horizontalDis>
+	     <horizontalDis>9.0</horizontalDis>
 	     <verticalDis>82.4</verticalDis>
-            <horizontalDis>-3.0</horizontalDis>
+            <horizontalDis>3.0</horizontalDis>
 	     <verticalDis>117.6</verticalDis>
-	     <horizontalDis>-6.2</horizontalDis>
+	     <horizontalDis>6.2</horizontalDis>
 	     <verticalDis>117.6</verticalDis>
-	     <horizontalDis>-9.0</horizontalDis>
+	     <horizontalDis>9.0</horizontalDis>
 	     <verticalDis>117.6</verticalDis>
-	     <horizontalDis>-3.0</horizontalDis>
+	     <horizontalDis>3.0</horizontalDis>
 	     <verticalDis>200.0</verticalDis>
-	     <horizontalDis>-5.8</horizontalDis>
+	     <horizontalDis>5.8</horizontalDis>
 	     <verticalDis>200.0</verticalDis>
-	     <horizontalDis>-9.0</horizontalDis>
+	     <horizontalDis>9.0</horizontalDis>
 	     <verticalDis>200.0</verticalDis>
-	     <horizontalDis>2.0</horizontalDis>
+	     <horizontalDis>-2.0</horizontalDis>
 	     <verticalDis>200.0</verticalDis>
  </radarmeasure>
  

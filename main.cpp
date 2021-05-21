@@ -149,7 +149,7 @@ int main()
 	cv::Mat RT =  m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
 		m_Calibrations.GetWorldBoxPoints());
 
-	for (int r = 0; r < RT.rows; r++)
+	for (int r = 0; r < RT.rows;r++)
 	{
 		        for (int c = 0; c < RT.cols; c++)
 		        {
@@ -229,6 +229,11 @@ int main()
 	bool useRTK = true;
 	m_Calibrations.CalibrateCamera(rasac,useRTK, pickPointindex);
 	
+	RadarSpeed m_radar;
+	RadarHeading m_radarr;
+	m_radar.vx = -3;
+	m_radar.vy = 0;
+	m_Calibrations.RadarSpeedHeading(m_radar,m_radarr);
 	
 	//cv::solvePnP(worldBoxPoints, boxPoints, cameraMatrix1, distCoeffs1, rvec1, tvec1, false,CV_P3P);
 	

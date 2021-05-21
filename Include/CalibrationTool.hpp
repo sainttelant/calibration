@@ -34,6 +34,18 @@ namespace UcitCalibrate
 		double latitude;
 	};
 
+	struct RadarSpeed
+	{
+		double vx;
+		double vy;
+	};
+
+	struct RadarHeading
+	{
+		double speed_value;
+		double theta;
+	};   
+
 
 	class CalibrationTool
 	{
@@ -92,6 +104,9 @@ namespace UcitCalibrate
 		// 计算航向角,根据经纬度
 		double CalculateHeading(longandlat point1, longandlat point2);
 
+		// 雷达坐标系向东（x轴）为正，向北为（Y轴）正，z向上
+		// 世界坐标系与雷达坐标系相同，存在一个偏转角，demo大概为60°
+		void RadarSpeedHeading(RadarSpeed &m_speed, RadarHeading &m_radarhead);
 		void SetRadarHeight(double radar_height);
 		void SetCameraInstrinic(double fx, double fy, double cx, double cy);
 		void SetCameraDiff(double df1, double df2, double df3, double df4, double df5);
