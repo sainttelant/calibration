@@ -4,6 +4,15 @@
 #include <ctime>
 using namespace UcitCalibrate;
 
+string dou2str(double num,int precision = 16)   //num也可以是int类型
+{
+	stringstream ss;      //stringstream需要sstream头文件
+	ss.precision(precision);
+	string str;
+	ss << num;
+	ss >> str;
+	return str;
+}
 
 void Gps2WorldCoord4test(double earthR,double handleheight, \
 	longandlat m_longandlat, std::map<int, double> P1_lo, \
@@ -28,6 +37,59 @@ void Gps2WorldCoord4test(double earthR,double handleheight, \
 	
 }
 
+// 创建xml文件
+
+int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44)
+{
+	if (raderRT44==nullptr || cameraRT44==nullptr)
+	{
+		printf("input rt matrix error \n");
+		return -1;
+	}
+	TiXmlDocument* writeDoc = new TiXmlDocument; //xml文档指针
+
+	//文档格式声明
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "UTF-8", "yes");
+	writeDoc->LinkEndChild(decl); //写入文档
+
+	TiXmlElement* RootElement = new TiXmlElement("CalibInfo");//根元素
+	writeDoc->LinkEndChild(RootElement);
+
+	// 雷达rt矩阵写入
+	TiXmlElement* RadElement = new TiXmlElement("radarRT44");
+	RootElement->LinkEndChild(RadElement);
+	for (int r = 0; r < raderRT44->rows; r++)
+	{
+		for (int c = 0; c < raderRT44->cols; c++)
+		{
+			TiXmlElement* index = new TiXmlElement("index");
+			RadElement->LinkEndChild(index);
+			std::string valuestring = dou2str(raderRT44->at<double>(r, c));
+			TiXmlText* value = new TiXmlText(valuestring.c_str());
+			index->LinkEndChild(value);
+		}
+	}
+	// 摄像头rt矩阵写入
+	TiXmlElement* CameraElement = new TiXmlElement("cameraRT44");
+	RootElement->LinkEndChild(CameraElement);
+	for (int r = 0; r < cameraRT44->rows; r++)
+	{
+		for (int c = 0; c < cameraRT44->cols; c++)
+		{
+			TiXmlElement* index = new TiXmlElement("indexcamera");
+			CameraElement->LinkEndChild(index);
+			std::string valuestring = dou2str(cameraRT44->at<double>(r, c));
+			TiXmlText* value = new TiXmlText(valuestring.c_str());
+			index->LinkEndChild(value);
+		}
+	}
+
+	
+	writeDoc->SaveFile("calibration.xml");
+	delete writeDoc;
+
+	return 1;
+}
 
 
 
@@ -249,11 +311,15 @@ int main()
 		hconcat(m_Calibrations.m_cameraRMatrix33, m_Calibrations.m_cameraTMatrix, RT_);
 		cout << "Image RT_" << RT_ << endl;
 		outfile << "it is an Image RT matrix then! \n\n" << endl;
-		outfile << RT_ << endl;
+		outfile << RT_ <<"\n"<< endl;
 
 		outfile << "Rotate33:" << m_Calibrations.m_cameraRMatrix33<<"\n\n"<< endl;
 		outfile << "CameraTmatrix:" << m_Calibrations.m_cameraTMatrix << "\n" << endl;
 	
+		// generate xml files to store rt matrix
+		int flag = writeXmlFile(&RT, &RT_);
+
+
 
 		// 反推12个点投影到pixel坐标,以下用新构造的点来计算
 		vector<Point3d> m_fantuiceshi;
