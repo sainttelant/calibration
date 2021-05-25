@@ -39,7 +39,7 @@ void Gps2WorldCoord4test(double earthR,double handleheight, \
 
 // 创建xml文件
 
-int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44)
+int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44,cv::Mat *cameraRT33,cv::Mat *cameraRT31)
 {
 	if (raderRT44==nullptr || cameraRT44==nullptr)
 	{
@@ -84,6 +84,33 @@ int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44)
 		}
 	}
 
+	TiXmlElement* CameraElement33 = new TiXmlElement("cameraRT33");
+	RootElement->LinkEndChild(CameraElement33);
+	for (int r = 0; r < cameraRT33->rows; r++)
+	{
+		for (int c = 0; c < cameraRT33->cols; c++)
+		{
+			TiXmlElement* index = new TiXmlElement("indexcamera33");
+			CameraElement33->LinkEndChild(index);
+			std::string valuestring = dou2str(cameraRT33->at<double>(r, c));
+			TiXmlText* value = new TiXmlText(valuestring.c_str());
+			index->LinkEndChild(value);
+		}
+	}
+
+	TiXmlElement* CameraElement31 = new TiXmlElement("cameraRT31");
+	RootElement->LinkEndChild(CameraElement31);
+	for (int r = 0; r < cameraRT31->rows; r++)
+	{
+		for (int c = 0; c < cameraRT31->cols; c++)
+		{
+			TiXmlElement* index = new TiXmlElement("indexcamera31");
+			CameraElement31->LinkEndChild(index);
+			std::string valuestring = dou2str(cameraRT31->at<double>(r, c));
+			TiXmlText* value = new TiXmlText(valuestring.c_str());
+			index->LinkEndChild(value);
+		}
+	}
 	
 	writeDoc->SaveFile("calibration.xml");
 	delete writeDoc;
@@ -317,7 +344,8 @@ int main()
 		outfile << "CameraTmatrix:" << m_Calibrations.m_cameraTMatrix << "\n" << endl;
 	
 		// generate xml files to store rt matrix
-		int flag = writeXmlFile(&RT, &RT_);
+		int flag = writeXmlFile(&RT, &RT_, &m_Calibrations.m_cameraRMatrix33, \
+			&m_Calibrations.m_cameraTMatrix);
 
 
 
