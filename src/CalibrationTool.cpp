@@ -400,6 +400,7 @@ namespace UcitCalibrate
 			GpsWorldtmp.Distance);
 			m_gpsworlds.push_back(GpsWorldtmp);
 		}
+
 		printf("******************* \n");
 		printf("******************* \n");
 		printf("******************* \n");
@@ -424,10 +425,17 @@ namespace UcitCalibrate
 		}
 	}
 
+	void CalibrationTool::radarworld2Gps(GpsWorldCoord& m_gpsworld, longandlat& m_longandlat)
+	{
+		double val = m_PI / 180.0;
+		m_longandlat.latitude = (m_gpsworld.Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
+		m_longandlat.longtitude = (m_gpsworld.X * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_longandlat.latitude * val))) + m_originlongitude;
+	}
+
 	vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
 	{
 		return m_gpsworlds;
-	}
+	 }
 
 	void CalibrationTool::SetWorldBoxPoints()
 	{
@@ -782,7 +790,7 @@ namespace UcitCalibrate
 		cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
 		radar_Dis = m_RadarRT.inv() * Distance_W4;
 		cout << "Distance:X" << radar_Dis.at<double>(0, 0) <<"\t"<< "distance:Y" << radar_Dis.at<double>(1, 0) << endl;
-		Distances.X = radar_Dis.at<double>(0, 0);
+		Distances.X = -radar_Dis.at<double>(0, 0);
 		Distances.Y = radar_Dis.at<double>(1, 0);
 		Distances.Height = radar_Dis.at<double>(2, 0);
 	}
@@ -792,7 +800,7 @@ namespace UcitCalibrate
 		cv::Mat RadarPoint = Mat::ones(4, 1, cv::DataType<double>::type);
 		Mat world_point = Mat::ones(4, 1, cv::DataType<double>::type);
 		Mat imagetmp = Mat::ones(3, 1, cv::DataType<double>::type);
-		RadarPoint.at<double>(0, 0) = Distances.X;
+		RadarPoint.at<double>(0, 0) = -Distances.X;
 		RadarPoint.at<double>(1, 0) = Distances.Y;
 		RadarPoint.at<double>(2, 0) = Distances.Height;
 		world_point = m_RadarRT * RadarPoint;
