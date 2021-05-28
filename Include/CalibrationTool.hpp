@@ -71,32 +71,32 @@ namespace UcitCalibrate
 
 		bool ReadPickpointXml(std::string m_xmlpath, 
 			std::vector<unsigned int>& pickpoints, 
-			vector<Point2d> &rawpoint, 
-			std::map<int, Point2d> &map_points, 
+			std::vector<cv::Point2d> &rawpoint, 
+			std::map<int, cv::Point2d> &map_points, 
 			std::map<int, double> &map_long, 
 			std::map<int, double> &map_lan,
 			double &reflectheight,
 			double &installheight,
-			std::map<int, Point3d> &map_Measures,
+			std::map<int, cv::Point3d> &map_Measures,
 			longandlat &originpoll);
 
-		void Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la);
-		void WorldCoord2Gps(vector<longandlat> &m_longandlat,vector<GpsWorldCoord> &m_gpsworld); 
-		void radarworld2Gps(GpsWorldCoord& m_gpsworld, longandlat& m_longandlat);
-		void CameraPixel2World(Point2d m_pixels, Point3d &m_world, cv::Mat rotate33);
+		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
+		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
+		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 
+		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world, cv::Mat rotate33);
 
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系
-		void Pixel2Distance31(Point2d pixels, WorldDistance &Distances);
-		void Distance312Pixel(WorldDistance Distances, Point2d& pixels);
+		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);
+		void Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels);
 		void SetWorldBoxPoints();
-		vector<Point3d> GetWorldBoxPoints(); 
+		std::vector<cv::Point3d> GetWorldBoxPoints(); 
 		// choose selected points for calibration
-		void PickRawGPSPoints4VectorPairs(vector<unsigned int> pointsSet, std::map<int, double>&Gps_longtitude, std::map<int, double>&Gps_latitudes);
-		void PickMeasureMentValue4RadarRT(vector<unsigned int> pointsSet, std::map<int, Point3d> &measurements);
-		void PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, Point2d>& imagesPixel);
+		void PickRawGPSPoints4VectorPairs(std::vector<unsigned int> pointsSet, std::map<int, double>&Gps_longtitude, std::map<int, double>&Gps_latitudes);
+		void PickMeasureMentValue4RadarRT(std::vector<unsigned int> pointsSet, std::map<int, cv::Point3d> &measurements);
+		void PickImagePixelPoints4PnPsolve(std::vector<unsigned int>pointsSet, std::map<int, cv::Point2d>& imagesPixel);
 		
-		vector<Point3d> GetMeasureMentPoint();
-		void CalibrateCamera(bool rasac,bool useRTK, vector<unsigned int> pickPoints);
+		std::vector<cv::Point3d> GetMeasureMentPoint();
+		void CalibrateCamera(bool rasac,bool useRTK, std::vector<unsigned int> pickPoints);
 		void SetPi(double pai);
 		double rad(double d);
 		double deg(double x);
@@ -117,19 +117,21 @@ namespace UcitCalibrate
 		void codeRotateByY(double x, double z, double thetay, double& outx, double& outz);
 		void codeRotateByX(double y, double z, double thetax, double& outy, double& outz);
 		cv::Point3d RotateByVector(double old_x, double old_y, double old_z, double vx, double vy, double vz, double theta);
-		vector<GpsWorldCoord> GetGpsworlds();
+		std::vector<GpsWorldCoord> GetGpsworlds();
 		// radar2 world
 		cv::Mat Get3DR_TransMatrix(const std::vector<cv::Point3d>& srcPoints, const std::vector<cv::Point3d>& dstPoints);
 		cv::Mat GetRadarRTMatrix();
 		cv::Mat GetCameraRT44Matrix();
 		bool SetCameraRT44(cv::Mat CmRT44);
 		bool SetRadarRT44(cv::Mat RadRT44);
+		bool SetCameraRT33(cv::Mat CmRT33);
+		bool SetCameraTMatrix(cv::Mat CTmatrix);
 
-		vector<Point3d> m_worldBoxPoints;
-		vector<double> gps_longPick;
-		vector<double> gps_latiPick;
-		vector<Point3d> measures_pick;
-		vector<Point2f> imagePixel_pick;
+		std::vector<cv::Point3d> m_worldBoxPoints;
+		std::vector<double> gps_longPick;
+		std::vector<double> gps_latiPick;
+		std::vector<cv::Point3d> measures_pick;
+		std::vector<cv::Point2f> imagePixel_pick;
 		cv::Mat  m_cameraRMatrix;
 		cv::Mat m_cameraRMatrix33;
 		cv::Mat  m_cameraTMatrix;
@@ -138,7 +140,7 @@ namespace UcitCalibrate
 	private:
 		CalibrationTool();
 		virtual ~CalibrationTool();
-		vector<GpsWorldCoord> m_gpsworlds;
+		std::vector<GpsWorldCoord> m_gpsworlds;
 		// 用gps计算得到的数据构造以下
 		
 		double m_PI;

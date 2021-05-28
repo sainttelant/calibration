@@ -70,7 +70,7 @@ namespace UcitCalibrate
 			
 			// 计算雷达速度的反正切
 			double m_radarrange = deg(atan(m_speed.vx / m_speed.vy));
-			cout << "雷达反正切" << m_radarrange << endl;
+			std::cout << "雷达反正切" << m_radarrange << std::endl;
 			if (m_speed.vy > 0)
 			{
 				// 此时背向雷达运动
@@ -113,13 +113,13 @@ namespace UcitCalibrate
 
 	bool CalibrationTool::ReadPickpointXml(std::string m_xmlpath,
 		std::vector<unsigned int>& pickpoints, 
-		vector<Point2d>& rawpoint, 
-		std::map<int, Point2d>& map_points, 
+		std::vector<cv::Point2d>& rawpoint, 
+		std::map<int, cv::Point2d>& map_points, 
 		std::map<int, double>& map_long, 
 		std::map<int, double>& map_lan,
 		double& reflectheight,
 		double& installheight,
-		std::map<int, Point3d>& map_Measures,
+		std::map<int, cv::Point3d>& map_Measures,
 		longandlat& originpoll)
 	{
 		//读取xml文件中的参数值
@@ -189,7 +189,7 @@ namespace UcitCalibrate
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
 				int count = 0;
-				Point2d temp;
+				cv::Point2d temp;
 				while (BoxElement != nullptr)
 				{
 					double pixelx, pixely;
@@ -214,12 +214,12 @@ namespace UcitCalibrate
 					count += 1;
 				}
 			}
-			vector<Point3d> v_temp;
+			std::vector<cv::Point3d> v_temp;
 			if (NextElement->ValueTStr()=="radarmeasure")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
 				int count = 0;
-				Point3d temp;
+				cv::Point3d temp;
 				
 				while (BoxElement != nullptr)
 				{
@@ -260,7 +260,7 @@ namespace UcitCalibrate
 			if (NextElement->ValueTStr() == "gps")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
-				vector<double> longs, lans;
+				std::vector<double> longs, lans;
 				while (BoxElement != nullptr)
 				{
 					std::string gps = BoxElement->GetText();
@@ -362,7 +362,7 @@ namespace UcitCalibrate
 
 	void CalibrationTool::SetCameraInstrinic(double fx, double fy, double cx, double cy)
 	{
-		m_cameraintrisic = Mat::eye(3, 3, cv::DataType<double>::type);
+		m_cameraintrisic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
 		m_cameraintrisic.at<double>(0, 0) = fx;
 		m_cameraintrisic.at<double>(1, 1) = fy;
 		m_cameraintrisic.at<double>(0, 2) = cx;
@@ -371,7 +371,7 @@ namespace UcitCalibrate
 
 	void CalibrationTool::SetCameraDiff(double df1, double df2, double df3, double df4, double df5)
 	{
-		m_cameradiff = Mat::eye(5, 1, cv::DataType<double>::type);
+		m_cameradiff = cv::Mat::eye(5, 1, cv::DataType<double>::type);
 		m_cameradiff.at<double>(0, 0) = df1;
 		m_cameradiff.at<double>(1, 0) = df2;
 		m_cameradiff.at<double>(2, 0) = df3;
@@ -380,7 +380,7 @@ namespace UcitCalibrate
 	}
 
 
-	void CalibrationTool::Gps2WorldCoord(vector<double> P1_lo, vector<double> P1_la)
+	void CalibrationTool::Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la)
 	{
 		if (P1_la.size()!= P1_lo.size())
 		{
@@ -407,7 +407,7 @@ namespace UcitCalibrate
 		printf("******************* \n");
 	}
 
-	void CalibrationTool::WorldCoord2Gps(vector<longandlat>& m_longandlat, vector<GpsWorldCoord>& m_Gpsworld)
+	void CalibrationTool::WorldCoord2Gps(std::vector<longandlat>& m_longandlat, std::vector<GpsWorldCoord>& m_Gpsworld)
 	{
 		if (m_Gpsworld.empty())
 		{
@@ -425,14 +425,16 @@ namespace UcitCalibrate
 		}
 	}
 
-	void CalibrationTool::radarworld2Gps(GpsWorldCoord& m_gpsworld, longandlat& m_longandlat)
+	void CalibrationTool::radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat)
 	{
-		double val = m_PI / 180.0;
-		m_longandlat.latitude = (m_gpsworld.Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
-		m_longandlat.longtitude = (m_gpsworld.X * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_longandlat.latitude * val))) + m_originlongitude;
+		double val = m_PI/180.0;
+
+		m_gpslongandlat.latitude = (m_gpsworldcoord.Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
+		m_gpslongandlat.longtitude = (m_gpsworldcoord.X * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val))) + m_originlongitude;
+
 	}
 
-	vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
+	std::vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
 	{
 		return m_gpsworlds;
 	 }
@@ -443,7 +445,7 @@ namespace UcitCalibrate
 		{
 			m_worldBoxPoints.clear();
 		}
-		Point3d tmpPoint;
+		cv::Point3d tmpPoint;
 		for (int i = 0; i < m_gpsworlds.size(); i++)
 		{
 			tmpPoint.x = m_gpsworlds[i].X;
@@ -455,7 +457,7 @@ namespace UcitCalibrate
 	
 	}
 
-	void CalibrationTool::PickRawGPSPoints4VectorPairs(vector<unsigned int> pointsSet, std::map<int, double>& Gps_longtitude, std::map<int, double>& Gps_latitudes)
+	void CalibrationTool::PickRawGPSPoints4VectorPairs(std::vector<unsigned int> pointsSet, std::map<int, double>& Gps_longtitude, std::map<int, double>& Gps_latitudes)
 	{
 		if (pointsSet.empty())
 		{
@@ -481,14 +483,14 @@ namespace UcitCalibrate
 
 	}
 
-	void CalibrationTool::PickMeasureMentValue4RadarRT(vector<unsigned int> pointsSet, std::map<int, Point3d>& measurements)
+	void CalibrationTool::PickMeasureMentValue4RadarRT(std::vector<unsigned int> pointsSet, std::map<int, cv::Point3d>& measurements)
 	{
 		if (pointsSet.empty())
 		{
 			return;
 		}
 		measures_pick.clear();
-		std::map<int, Point3d>::iterator iter	= measurements.begin();
+		std::map<int, cv::Point3d>::iterator iter	= measurements.begin();
 		for (int i = 0; i < pointsSet.size(); i++)
 		{
 			iter = measurements.find(pointsSet[i]);
@@ -519,7 +521,7 @@ namespace UcitCalibrate
 		}
 	}
 
-	vector<Point3d> CalibrationTool::GetWorldBoxPoints()
+	std::vector<cv::Point3d> CalibrationTool::GetWorldBoxPoints()
 	{
 		return m_worldBoxPoints;
 	}
@@ -677,6 +679,21 @@ namespace UcitCalibrate
 
 	}
 
+	bool CalibrationTool::SetCameraRT33(cv :: Mat CmRT33)
+		{
+			if (CmRT33.cols!=3 && CmRT33.rows!=3)
+		{
+			//printf("Set cameraRT33 matrix failed!!!!!!!\n");
+			return false;
+		}
+		else
+		{
+			m_cameraRMatrix33 = CmRT33;
+			//printf("Manual Set cameraRT33 successful!!!!!!!\n");
+		}
+		return true;
+		}
+
 	bool CalibrationTool::SetRadarRT44(cv::Mat RadRT44)
 	{
 		if (RadRT44.cols != 4 && RadRT44.rows != 4)
@@ -692,12 +709,18 @@ namespace UcitCalibrate
 		return true;
 	}
 
-	vector<Point3d> CalibrationTool::GetMeasureMentPoint()
+	bool CalibrationTool::SetCameraTMatrix(cv :: Mat CTmatrix)
+	{
+		m_cameraTMatrix = CTmatrix;
+		return true;
+	}
+
+	std::vector<cv::Point3d> CalibrationTool::GetMeasureMentPoint()
 	{
 		return measures_pick;
 	}
 
-	void CalibrationTool::CameraPixel2World(Point2d m_pixels, Point3d& m_world, cv::Mat rotate33)
+	void CalibrationTool::CameraPixel2World(cv::Point2d m_pixels, cv::Point3d& m_world, cv::Mat rotate33)
 	{
 		double s;
 		/////////////////////2D to 3D///////////////////////
@@ -705,22 +728,22 @@ namespace UcitCalibrate
 		imagepixel.at<double>(0, 0) = m_pixels.x;
 		imagepixel.at<double>(1, 0) = m_pixels.y;
 
-		Mat tempMat = rotate33.inv() * m_cameraintrisic.inv() * imagepixel;
-		Mat tempMat2 = rotate33.inv() * m_cameraTMatrix;
+		cv::Mat tempMat = rotate33.inv() * m_cameraintrisic.inv() * imagepixel;
+		cv::Mat tempMat2 = rotate33.inv() * m_cameraTMatrix;
 	
 		s = m_radarheight + tempMat2.at<double>(2, 0);
 		s /= tempMat.at<double>(2, 0);
 		cout << "s : " << s << endl;
 
-		Mat camera_cordinates = -rotate33.inv() * m_cameraTMatrix;
-		Mat wcPoint = rotate33.inv() * (m_cameraintrisic.inv() * s * imagepixel - m_cameraTMatrix);
+		cv::Mat camera_cordinates = -rotate33.inv() * m_cameraTMatrix;
+		cv::Mat wcPoint = rotate33.inv() * (m_cameraintrisic.inv() * s * imagepixel - m_cameraTMatrix);
 		m_world.x = wcPoint.at<double>(0, 0);
 		m_world.y = wcPoint.at<double>(1, 0);
 		m_world.z = wcPoint.at<double>(2, 0);
 		cout << "Pixel2World :" << wcPoint << endl;
 	}
 
-	void CalibrationTool::CalibrateCamera(bool rasac, bool useRTK, vector<unsigned int> pickPoints)
+	void CalibrationTool::CalibrateCamera(bool rasac, bool useRTK, std::vector<unsigned int> pickPoints)
 	{
 		cv::Mat rvec1(3, 1, cv::DataType<double>::type);  //旋转向量
 		cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
@@ -795,44 +818,50 @@ namespace UcitCalibrate
 		Distances.Height = radar_Dis.at<double>(2, 0);
 	}
 
-	void CalibrationTool::Distance312Pixel(WorldDistance Distances, Point2d& pixels)
-	{
-		cv::Mat RadarPoint = Mat::ones(4, 1, cv::DataType<double>::type);
-		Mat world_point = Mat::ones(4, 1, cv::DataType<double>::type);
-		Mat imagetmp = Mat::ones(3, 1, cv::DataType<double>::type);
-		RadarPoint.at<double>(0, 0) = -Distances.X;
-		RadarPoint.at<double>(1, 0) = Distances.Y;
-		RadarPoint.at<double>(2, 0) = Distances.Height;
-		world_point = m_RadarRT * RadarPoint;
-		// 其实m_cameraRTMatrix44 是3*4的
-		
-		if (m_cameraRTMatrix44.rows==4)
-		{
-			Mat dst;
-			int a = 3;
-			for (int i = 0; i < m_cameraRTMatrix44.rows; i++)
-			{
-				if (i != a) //第i行不是需要删除的
-				{
-					dst.push_back(m_cameraRTMatrix44.row(i)); //把message的第i行加到dst矩阵的后面
-				}
-			}
-			m_cameraRTMatrix44 = dst.clone();
-		}
-		imagetmp = m_cameraintrisic * m_cameraRTMatrix44 * world_point;
-		cout << "RTMatrix:" << m_cameraRTMatrix44 << endl;
-		//image_points = m_Calibrations.m_cameraintrisic * RT_ * RadarPoint;
-		Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
-		D_Points.at<double>(0, 0) = imagetmp.at<double>(0, 0) / imagetmp.at<double>(2, 0);
-		D_Points.at<double>(1, 0) = imagetmp.at<double>(1, 0) / imagetmp.at<double>(2, 0);
-		
-		
-		pixels.x = D_Points.at<double>(0, 0);
-		pixels.y = D_Points.at<double>(1, 0);
-		std::string raders = "radarPoints";
-		cout << "Pixel_2D_X:\t" << pixels.x << "\t" << "Pixel_2D_Y:\t" << pixels.y << endl;
-		//circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
-	}
+	void CalibrationTool::Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels)
+  {
+    cv::Mat RadarPoint = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+    cv::Mat world_point = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+    cv::Mat imagetmp = cv::Mat::ones(3, 1, cv::DataType<double>::type);
+    RadarPoint.at<double>(0, 0) = -Distances.X;
+    RadarPoint.at<double>(1, 0) = Distances.Y;
+    RadarPoint.at<double>(2, 0) = Distances.Height;
+    world_point = m_RadarRT * RadarPoint;
+    // 其实m_cameraRTMatrix44 是3*4的
+    
+    if (m_cameraRTMatrix44.rows==4)
+    {
+      cv::Mat dst;
+      int a = 3;
+      for (int i = 0; i < m_cameraRTMatrix44.rows; i++)
+      {
+        if (i != a) //第i行不是需要删除的
+        {
+          dst.push_back(m_cameraRTMatrix44.row(i)); //把message的第i行加到dst矩阵的后面
+        }
+      }
+      m_cameraRTMatrix44 = dst.clone();
+    }
+    imagetmp = m_cameraintrisic * m_cameraRTMatrix44 * world_point;
+//    std::cout << "RTMatrix:" << m_cameraRTMatrix44 << std::endl;
+//	std::cout<<"RT_"<<RT_<<std::endl;
+    //image_points = m_Calibrations.m_cameraintrisic * RT_ * RadarPoint;
+    cv::Mat D_Points = cv::Mat::ones(3, 1, cv::DataType<double>::type);
+    D_Points.at<double>(0, 0) = imagetmp.at<double>(0, 0) / imagetmp.at<double>(2, 0);
+    D_Points.at<double>(1, 0) = imagetmp.at<double>(1, 0) / imagetmp.at<double>(2, 0);
+    
+    
+    pixels.x = D_Points.at<double>(0, 0);
+    pixels.y = D_Points.at<double>(1, 0);
 
+	pixels.x = pixels.x;
+	pixels.y = pixels.y;
+
+	pixels.x = pixels.x;
+	pixels.y = pixels.y;
+    //std::string raders = "radarPoints";
+    //std::cout << "Pixel_2D_X:\t" << pixels.x << "\t" << "Pixel_2D_Y:\t" << pixels.y << std::endl;
+    //circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
+  }
 }
 
