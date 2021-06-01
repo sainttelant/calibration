@@ -47,6 +47,13 @@ namespace UcitCalibrate
 		double theta;
 	};   
 
+	// y =kx+b
+	struct BlindArea
+	{
+		double k;
+		double b;
+	};
+
 
 	class CalibrationTool
 	{
@@ -91,6 +98,8 @@ namespace UcitCalibrate
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系
 		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);
 		void Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels);
+
+		bool CalculateBlind(BlindArea& blind);
 		void SetWorldBoxPoints();
 		std::vector<cv::Point3d> GetWorldBoxPoints(); 
 		// choose selected points for calibration

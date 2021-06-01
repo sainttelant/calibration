@@ -488,6 +488,35 @@ namespace UcitCalibrate
 			
 	}
 
+	bool CalibrationTool::CalculateBlind(BlindArea& blind)
+	{
+		// 计算边界值，y = 0的对应的区域
+		Point2d raderpixelPoints, point1, pointend;
+		for (float i = -100; i < 100; i += 0.5)
+		{
+			UcitCalibrate::WorldDistance worldDistance;
+			worldDistance.X = i;
+			worldDistance.Y = 0;
+			worldDistance.Height = 1.2;
+			if (i == -9)
+			{
+				Distance312Pixel(worldDistance, point1);
+				raderpixelPoints = point1;
+			}
+			if (i == 8.0)
+			{
+				Distance312Pixel(worldDistance, pointend);
+				raderpixelPoints = pointend;
+			}
+			Distance312Pixel(worldDistance, raderpixelPoints);
+			
+		}
+		blind.b = (pointend.y - point1.y) / (pointend.x - point1.x);
+		blind.k = point1.y - blind.b * point1.x;
+
+		return true;
+	}
+
 	std::vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
 	{
 		return m_gpsworlds;

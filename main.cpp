@@ -437,7 +437,7 @@ int main()
 		m_Calibrations.Distance312Pixel(worldDistance, radpixel);
 		std::string raders = "radarPoints";
 		sprintf(textbuf, "GPS[%3.6f,%3.6f]", m_longandlatt.longtitude,m_longandlatt.latitude);
-		putText(sourceImage, textbuf, Point((int)radpixel.x - 100, (int)radpixel.y - 30), 0, 1, Scalar(0, 0, 255), 2);
+		putText(sourceImage, textbuf, Point((int)radpixel.x - 100, (int)radpixel.y - 30), 0, 1, Scalar(255, 200, 255), 2);
 		cout << "给定雷达画图像:\t" << radpixel.x <<"\t"<<"Pixel_2D_Y:\t"<< radpixel.y<< endl;
 		circle(sourceImage, radpixel, 7, Scalar(0, 255, 0), -1, LINE_AA);
 		
@@ -452,17 +452,6 @@ int main()
 
 		Point2d  m_Distancepixel;
 		
-		////反计算y值  
-		//for (int i = 200; i < 2450; i += 100)
-		//{
-		//	m_Distancepixel.x = i;
-		//	m_Distancepixel.y = 1432;
-		//	circle(sourceImage, m_Distancepixel, 10, Scalar(200, 0, 255), -1, LINE_AA);
-		//	UcitCalibrate::WorldDistance m_Distance;
-		//	m_Calibrations.Pixel2Distance31(m_Distancepixel, m_Distance);
-		//	sprintf(textbuf, "%.2f", m_Distance.Y);
-		//	putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 30), 0, 1, Scalar(0, 0, 255), 2);
-		//}
 
 		// 计算边界值，y = 0的对应的区域
 		Point2d raderpixelPoints, point1, pointend;
@@ -490,6 +479,8 @@ int main()
 			putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 80, (int)raderpixelPoints.y - 30), 0, 1, Scalar(0, 0, 255), 2);
 			
 		}
+		BlindArea results;
+		m_Calibrations.CalculateBlind(results);
 		line(sourceImage, pointend, point1, Scalar(100, 0, 200), 3);
 
 		
