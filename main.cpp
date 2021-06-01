@@ -4,6 +4,7 @@
 #include <ctime>
 using namespace UcitCalibrate;
 
+
 string dou2str(double num,int precision = 16)   //num也可以是int类型
 {
 	stringstream ss;      //stringstream需要sstream头文件
@@ -150,6 +151,7 @@ int main()
 	std::map<int, double> mp_Gpslong, mp_Gpslat;
 
 	longandlat originallpoll;
+	cv::Mat cameradistort, camrainst;
 	// read from xml config
 	m_Calibrations.ReadPickpointXml(m_xmlpath,
 		pickPointindex,
@@ -160,7 +162,7 @@ int main()
 		reflectorheight,
 		raderheight,
 		m_Measures,
-		originallpoll);
+		originallpoll,cameradistort,camrainst);
 
 
 	//处理measures
@@ -268,30 +270,18 @@ int main()
 
 	// camera relevant 
 	// camera inside parameters
-    cv::Mat cameraMatrix1 = Mat::eye(3, 3, cv::DataType<double>::type);  //相机内参矩阵
-    cv::Mat distCoeffs1(5, 1, cv::DataType<double>::type);  //畸变参数
-    distCoeffs1.at<double>(0, 0) = -0.37926434;//-0.425538335;//-0.449138527;
-    distCoeffs1.at<double>(1, 0) = -1.35701064;//0.669067735;//-1.44777024;
-    distCoeffs1.at<double>(2, 0) = 0.00229614642;//0.002579693;//-0.003672864;
-    distCoeffs1.at<double>(3, 0) = 0.000660113081;//-0.0001853206;//-0.006163641;
-    distCoeffs1.at<double>(4, 0) = 10.8547903;//-1.13768705;//6.11274918;
-
-	//Taken from Mastring OpenCV d
-	double fx = 4379.81913;//2763.00742;//3145.87006;//6472.05618/2;
-	double fy = 4404.48029;//2762.83572;//3136.68936;//6509.35456/2;
-	double cx = 1280.19495;//1240.60892;//1331.86113;//1279.92125;
-	double cy = 719.938094;//661.524642;//769.252552;//719.724251;
+   
 
 	// 设置相机的内参和畸变系数
-	m_Calibrations.SetCameraInstrinic(fx,fy,cx,cy);
+	m_Calibrations.SetCameraInstrinic(camrainst.at<double>(0,0)
+		,camrainst.at<double>(1,1),
+		camrainst.at<double>(0,2)
+		,camrainst.at<double>(1,2));
+
 	m_Calibrations.SetCameraDiff(-0.37926434, -1.35701064, 0.00229614642, 0.000660113081, 10.8547903);
 
 
-	cameraMatrix1.at<double>(0, 0) = fx;
-	cameraMatrix1.at<double>(1, 1) = fy;
-	cameraMatrix1.at<double>(0, 2) = cx;
-	cameraMatrix1.at<double>(1, 2) = cy;
-
+	
     // 获得世界坐标系到像素坐标系的R_T矩阵
 	 //////PnP solve R&T///////////////////////////////
 	cv::Mat rvec1(3, 1, cv::DataType<double>::type);  //旋转向量
@@ -301,17 +291,17 @@ int main()
 
 	if (rasac)
 	{
-		cv::solvePnPRansac(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
+		cv::solvePnPRansac(worldBoxPoints, m_Calibrations.imagePixel_pick, camrainst, cameradistort, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
 	}
 	else
 	{
 		if (pickPointindex.size()>4)
 		{
-			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
+			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, camrainst, cameradistort, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
 		}
 		else
 		{
-			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, cameraMatrix1, distCoeffs1, rvec1, tvec1, false, SOLVEPNP_P3P);
+			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, camrainst, cameradistort, rvec1, tvec1, false, SOLVEPNP_P3P);
 		}	
 	}
 
@@ -360,7 +350,7 @@ int main()
 			m_gps2world.at<double>(1, 0) = iter->y;
 			// 预估gps测量时的z轴高度为1.2f
 			m_gps2world.at<double>(2, 0) = iter->z;
-			image_points = cameraMatrix1 * RT_ * m_gps2world;
+			image_points = camrainst * RT_ * m_gps2world;
 			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
 			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
 			D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
@@ -416,32 +406,7 @@ int main()
 			outfile << "calibrate good enough!" << endl;
 		}
 
-		// GPS test points to draw in an image
-		/*CalibrationTool &testPoint = CalibrationTool::getInstance();
-		vector<double> gpslos{ 121.30811344 };
-		vector<double> gpslas{ 31.19713822 };
-		testPoint.Gps2WorldCoord(gpslos, gpslas);
-		testPoint.SetWorldBoxPoints();
-		vector<Point3d>::iterator itertest = testPoint.m_worldBoxPoints.begin();
-		for (; itertest != testPoint.m_worldBoxPoints.end(); itertest++)
-		{
-			m_gps2world.at<double>(0, 0) = itertest->x;
-			m_gps2world.at<double>(1, 0) = itertest->y;
-			m_gps2world.at<double>(2, 0) = 1.2;
-			image_points = m_Calibrations.m_cameraintrisic * RT_ * m_gps2world;
-			Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
-			D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
-			D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
-			Point2d raderpixelPoints;
-			raderpixelPoints.x = D_Points.at<double>(0, 0);
-			raderpixelPoints.y = D_Points.at<double>(1, 0);
-
-			sprintf(textbuf, "GpsTest");
-			putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 50, (int)raderpixelPoints.y-10), 0,1.3, Scalar(0,0,255),5);
-			circle(sourceImage, raderpixelPoints, 15, Scalar(255, 20, 20), -1, LINE_AA);
-		}*/
-
-		
+	
 		// 手动配置的雷达点
 
 		 // 雷达的原始点 unit 米
@@ -452,13 +417,19 @@ int main()
 		
 
 
-		radartest1.x = -4.0;
-		radartest1.y = 30.0;
-		//radartest1.y = sqrt(30 * 30 + 4.8 * 4.8);
+		radartest1.x = -5.4;
+		radartest1.y = 184.0;
 		radartest1.z = 1.2;
 
-		
+		GpsWorldCoord m_gpsworldt;
+			longandlat m_longandlatt;
+			m_gpsworldt.X = -5.2;
+			m_gpsworldt.Y= 61.2;
+			m_gpsworldt.Distance = 1.2;
 
+		m_Calibrations.radarworld2Gps(m_gpsworldt, m_longandlatt);
+
+		printf("m_long'value [%2.7f,%2.7f] \n", m_longandlatt.longtitude, m_longandlatt.latitude);
 	
 		vector<Point3d> m_radartests;
 	
@@ -475,22 +446,61 @@ int main()
 			m_Calibrations.Distance312Pixel(worldDistance, raderpixelPoints);
 			std::string raders = "radarPoints";
 			cout << "给定雷达画图像:\t" << raderpixelPoints.x <<"\t"<<"Pixel_2D_Y:\t"<<raderpixelPoints.y<< endl;
-			circle(sourceImage, raderpixelPoints, 10, Scalar(200, 100, 255), -1, LINE_AA);
+			//circle(sourceImage, raderpixelPoints, 20, Scalar(0, 100, 0), -1, LINE_AA);
 		}
 
 
 		outfile.close();
 
 		// 这个是计算pixel 到雷达坐标系
-		Point2d  m_Distancepixel(1126, 606);
-		cv::Rect2d m_rect(1075,523,97,78);
-		cv::rectangle(sourceImage, m_rect, cv::Scalar(255, 255, 0), 4, 8, 0);
-		circle(sourceImage, m_Distancepixel, 10, Scalar(200, 0, 255), -1, LINE_AA);	
-		UcitCalibrate::WorldDistance m_Distance;
-		m_Calibrations.Pixel2Distance31(m_Distancepixel, m_Distance);
-		sprintf(textbuf, "Dist:(%.3f,%.3f)",m_Distance.X, m_Distance.Y);
-		putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 10), 0, 1, Scalar(0, 0, 255), 3);
+		// Car 0 0  28 1360.7 1233.9 2250.4 1432.6 0.0 0.0 0.0 -4.0 -1.9 1.2 0.0 0 0.8
 
+		
+
+		Point2d  m_Distancepixel;
+		
+		////反计算y值  
+		//for (int i = 200; i < 2450; i += 100)
+		//{
+		//	m_Distancepixel.x = i;
+		//	m_Distancepixel.y = 1432;
+		//	circle(sourceImage, m_Distancepixel, 10, Scalar(200, 0, 255), -1, LINE_AA);
+		//	UcitCalibrate::WorldDistance m_Distance;
+		//	m_Calibrations.Pixel2Distance31(m_Distancepixel, m_Distance);
+		//	sprintf(textbuf, "%.2f", m_Distance.Y);
+		//	putText(sourceImage, textbuf, Point((int)m_Distancepixel.x - 80, (int)m_Distancepixel.y - 30), 0, 1, Scalar(0, 0, 255), 2);
+		//}
+
+		// 计算边界值，y = 0的对应的区域
+		Point2d raderpixelPoints, point1, pointend;
+		for (float i = -100; i < 100; i+=0.5)
+		{
+			UcitCalibrate::WorldDistance worldDistance;
+			worldDistance.X = i;
+			worldDistance.Y = 0;
+			worldDistance.Height = 1.2;
+			if (i == -9)
+			{
+				m_Calibrations.Distance312Pixel(worldDistance, point1);
+				raderpixelPoints = point1;
+			}
+			if (i == 8.0)
+			{
+				m_Calibrations.Distance312Pixel(worldDistance, pointend);
+				raderpixelPoints = pointend;
+			}
+			m_Calibrations.Distance312Pixel(worldDistance, raderpixelPoints);
+			std::string raders = "radarPoints";
+			
+			circle(sourceImage, raderpixelPoints,9, Scalar(0, 100, 0), -1, LINE_AA);
+			sprintf(textbuf, "%3.1f", i);
+			putText(sourceImage, textbuf, Point((int)raderpixelPoints.x - 80, (int)raderpixelPoints.y - 30), 0, 1, Scalar(0, 0, 255), 2);
+			
+		}
+		line(sourceImage, pointend, point1, Scalar(100, 0, 200), 3);
+
+		
+		//putText(sourceImage, textbuf, Point(500,500), 4, 2, Scalar(0, 0, 255), 3);
 
 	imwrite("save.jpg", sourceImage);
 	imshow("raw image", sourceImage);

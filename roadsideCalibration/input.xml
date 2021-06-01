@@ -115,4 +115,17 @@
 	<lan>31.19749911</lan>
 	<lan>31.19760351</lan>
 </gps>
+<cameradistort>
+	<value>-0.37926434</value>
+	<value>-1.35701064</value>
+	<value>0.00229614642</value>
+	<value>0.000660113081</value>
+	<value>10.8547903</value>
+</cameradistort>
+<camerainstrinic>
+	<fx>4379.81913</fx>
+	<fy>4404.48029</fy>
+	<cx>1280.19495</cx>
+	<cy>719.938094</cy>
+</camerainstrinic>
 </calibration>

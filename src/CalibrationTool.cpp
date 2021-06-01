@@ -111,16 +111,18 @@ namespace UcitCalibrate
 
 
 
-	bool CalibrationTool::ReadPickpointXml(std::string m_xmlpath,
+	bool CalibrationTool::ReadPickpointXml(std::string m_xmlpath, 
 		std::vector<unsigned int>& pickpoints, 
-		std::vector<cv::Point2d>& rawpoint, 
-		std::map<int, cv::Point2d>& map_points, 
-		std::map<int, double>& map_long, 
-		std::map<int, double>& map_lan,
-		double& reflectheight,
-		double& installheight,
-		std::map<int, cv::Point3d>& map_Measures,
-		longandlat& originpoll)
+		std::vector<cv::Point2d> &rawpoint, 
+		std::map<int, cv::Point2d> &map_points, 
+		std::map<int, double> &map_long, 
+		std::map<int, double> &map_lan, 
+		double &reflectheight, 
+		double &installheight, 
+		std::map<int, cv::Point3d> &map_Measures, 
+		longandlat &originpoll, 
+		cv::Mat &cameradistort, 
+		cv::Mat &camerainstrinic)
 	{
 		//读取xml文件中的参数值
 		TiXmlDocument* Document = new TiXmlDocument();
@@ -286,7 +288,48 @@ namespace UcitCalibrate
 				}
 			}
 
+			// 读取相机畸变系数
+			cameradistort=cv::Mat::eye(5, 1, cv::DataType<double>::type);
+			if (NextElement->ValueTStr()=="cameradistort")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				int count = 0;
+				while (BoxElement!=nullptr)
+				{
+					if (BoxElement->ValueTStr()=="value")
+					{
+						cameradistort.at<double>(count, 0) = atof(BoxElement->GetText());		
+					}
+					count += 1;
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
 
+			camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
+			if (NextElement->ValueTStr()=="camerainstrinic")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement!=nullptr)
+				{
+					if (BoxElement->ValueTStr()=="fx")
+					{
+						camerainstrinic.at<double>(0, 0) = atof(BoxElement->GetText());
+					}
+					if (BoxElement->ValueTStr()=="fy")
+					{
+						camerainstrinic.at<double>(1, 1) = atof(BoxElement->GetText());
+					}
+					if (BoxElement->ValueTStr()=="cx")
+					{
+						camerainstrinic.at<double>(0, 2) = atof(BoxElement->GetText());
+					}
+					if (BoxElement->ValueTStr()=="cy")
+					{
+						camerainstrinic.at<double>(1, 2) = atof(BoxElement->GetText());
+					}
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
 
 			NextElement = NextElement->NextSiblingElement();
 		}
@@ -728,11 +771,14 @@ namespace UcitCalibrate
 		imagepixel.at<double>(0, 0) = m_pixels.x;
 		imagepixel.at<double>(1, 0) = m_pixels.y;
 
+		// 内参矩阵的逆乘以像素坐标变成相机坐标系
 		cv::Mat tempMat = rotate33.inv() * m_cameraintrisic.inv() * imagepixel;
 		cv::Mat tempMat2 = rotate33.inv() * m_cameraTMatrix;
-	
-		s = m_radarheight + tempMat2.at<double>(2, 0);
-		s /= tempMat.at<double>(2, 0);
+		double tmp2 = tempMat2.at<double>(2,0);
+		double tmp = tempMat.at<double>(2, 0);
+
+		s = m_radarheight + tmp2;
+		s /= tmp;
 		cout << "s : " << s << endl;
 
 		cv::Mat camera_cordinates = -rotate33.inv() * m_cameraTMatrix;
@@ -811,11 +857,13 @@ namespace UcitCalibrate
 		Distance_W4.at<double>(2, 0) = tmp.z;
 		Distance_W4.at<double>(3, 0) = 0;
 		cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
+		cout << "radar inverse:" << m_RadarRT.inv() << endl;
 		radar_Dis = m_RadarRT.inv() * Distance_W4;
-		cout << "Distance:X" << radar_Dis.at<double>(0, 0) <<"\t"<< "distance:Y" << radar_Dis.at<double>(1, 0) << endl;
+		
 		Distances.X = -radar_Dis.at<double>(0, 0);
 		Distances.Y = radar_Dis.at<double>(1, 0);
 		Distances.Height = radar_Dis.at<double>(2, 0);
+		cout << "Distance:X" << Distances.X << "\t" << "Distance:Y" << Distances.Y << endl;
 	}
 
 	void CalibrationTool::Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels)

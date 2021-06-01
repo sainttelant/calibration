@@ -78,7 +78,9 @@ namespace UcitCalibrate
 			double &reflectheight,
 			double &installheight,
 			std::map<int, cv::Point3d> &map_Measures,
-			longandlat &originpoll);
+			longandlat &originpoll,
+			cv::Mat &cameradistort,
+			cv::Mat &camerainstrinic);
 
 		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
