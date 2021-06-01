@@ -85,6 +85,7 @@ namespace UcitCalibrate
 		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
 		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 
+		void Gps2radarworld(longandlat& m_gpslongandlat, GpsWorldCoord& m_gpsworldcoord);
 		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world, cv::Mat rotate33);
 
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系

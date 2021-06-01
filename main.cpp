@@ -415,39 +415,32 @@ int main()
 		Point3d  radartest,radartest1,radartest2,radartest3;
 
 		
-
-
-		radartest1.x = -5.4;
-		radartest1.y = 184.0;
-		radartest1.z = 1.2;
-
-		GpsWorldCoord m_gpsworldt;
+		// 测试gps转换精度如何
+		GpsWorldCoord m_gpsworldt,m_gpstest;
 			longandlat m_longandlatt;
 			m_gpsworldt.X = -5.2;
 			m_gpsworldt.Y= 61.2;
-			m_gpsworldt.Distance = 1.2;
-
 		m_Calibrations.radarworld2Gps(m_gpsworldt, m_longandlatt);
+		printf("radar2GPs 转换：m_long'value [%2.7f,%2.7f] \n", m_longandlatt.longtitude, m_longandlatt.latitude);
+		m_Calibrations.Gps2radarworld(m_longandlatt, m_gpstest);
+		printf("Gps2rader 转换：[%5.5f,%5.5f,%5.5f] \n", m_gpstest.X, m_gpstest.Y, m_gpstest.Distance);
 
-		printf("m_long'value [%2.7f,%2.7f] \n", m_longandlatt.longtitude, m_longandlatt.latitude);
-	
-		vector<Point3d> m_radartests;
-	
-		m_radartests.push_back(radartest1);
-	
+		radartest1.x = m_gpstest.X;
+		radartest1.y = m_gpstest.Y;
+		radartest1.z = 1.2;
+
+		Point2d radpixel;
+		UcitCalibrate::WorldDistance worldDistance;
+		worldDistance.X = radartest1.x;
+		worldDistance.Y = radartest1.y;
+		worldDistance.Height = radartest1.z;
+		m_Calibrations.Distance312Pixel(worldDistance, radpixel);
+		std::string raders = "radarPoints";
+		sprintf(textbuf, "GPS[%3.6f,%3.6f]", m_longandlatt.longtitude,m_longandlatt.latitude);
+		putText(sourceImage, textbuf, Point((int)radpixel.x - 100, (int)radpixel.y - 30), 0, 1, Scalar(0, 0, 255), 2);
+		cout << "给定雷达画图像:\t" << radpixel.x <<"\t"<<"Pixel_2D_Y:\t"<< radpixel.y<< endl;
+		circle(sourceImage, radpixel, 7, Scalar(0, 255, 0), -1, LINE_AA);
 		
-		for (int i = 0; i< m_radartests.size(); ++i)
-		{
-			Point2d raderpixelPoints;
-			UcitCalibrate::WorldDistance worldDistance;
-			worldDistance.X = m_radartests[i].x;
-			worldDistance.Y = m_radartests[i].y;
-			worldDistance.Height = m_radartests[i].z;
-			m_Calibrations.Distance312Pixel(worldDistance, raderpixelPoints);
-			std::string raders = "radarPoints";
-			cout << "给定雷达画图像:\t" << raderpixelPoints.x <<"\t"<<"Pixel_2D_Y:\t"<<raderpixelPoints.y<< endl;
-			//circle(sourceImage, raderpixelPoints, 20, Scalar(0, 100, 0), -1, LINE_AA);
-		}
 
 
 		outfile.close();

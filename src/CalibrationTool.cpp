@@ -477,6 +477,17 @@ namespace UcitCalibrate
 
 	}
 
+	void CalibrationTool::Gps2radarworld(longandlat& m_gpslongandlat, GpsWorldCoord& m_gpsworldcoord)
+	{
+		double val = m_PI / 180.0;
+
+			
+			m_gpsworldcoord.X = 2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val)) * ((m_gpslongandlat.longtitude - m_originlongitude) / 360);
+			m_gpsworldcoord.Y = 2 * m_PI * m_earthR * ((m_gpslongandlat.latitude - m_originlatitude) / 360);
+			m_gpsworldcoord.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
+			
+	}
+
 	std::vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
 	{
 		return m_gpsworlds;
