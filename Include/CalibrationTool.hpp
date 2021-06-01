@@ -99,7 +99,8 @@ namespace UcitCalibrate
 		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);
 		void Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels);
 
-		bool CalculateBlind(BlindArea& blind);
+		bool CalculateBlind();
+		BlindArea GetBlind();
 		void SetWorldBoxPoints();
 		std::vector<cv::Point3d> GetWorldBoxPoints(); 
 		// choose selected points for calibration
@@ -166,6 +167,7 @@ namespace UcitCalibrate
 		cv::Mat  m_cameradiff;
 		cv::Mat  m_RadarRT;
 		cv::Mat  m_cameraRTMatrix44;
+		BlindArea m_blind;
 		
 	};
 

@@ -24,6 +24,7 @@ namespace UcitCalibrate
 		, m_RadarRT()
 		, m_cameraRMatrix33()
 		, m_cameraRTMatrix44()
+		, m_blind()
 	{
 
 	};
@@ -488,7 +489,7 @@ namespace UcitCalibrate
 			
 	}
 
-	bool CalibrationTool::CalculateBlind(BlindArea& blind)
+	bool CalibrationTool::CalculateBlind()
 	{
 		// 计算边界值，y = 0的对应的区域
 		Point2d raderpixelPoints, point1, pointend;
@@ -498,12 +499,12 @@ namespace UcitCalibrate
 			worldDistance.X = i;
 			worldDistance.Y = 0;
 			worldDistance.Height = 1.2;
-			if (i == -9)
+			if (i == -99)
 			{
 				Distance312Pixel(worldDistance, point1);
 				raderpixelPoints = point1;
 			}
-			if (i == 8.0)
+			if (i == 99)
 			{
 				Distance312Pixel(worldDistance, pointend);
 				raderpixelPoints = pointend;
@@ -511,10 +512,14 @@ namespace UcitCalibrate
 			Distance312Pixel(worldDistance, raderpixelPoints);
 			
 		}
-		blind.b = (pointend.y - point1.y) / (pointend.x - point1.x);
-		blind.k = point1.y - blind.b * point1.x;
-
+		m_blind.b = (pointend.y - point1.y) / (pointend.x - point1.x);
+		m_blind.k = point1.y - m_blind.b * point1.x;
+		
 		return true;
+	}
+	BlindArea CalibrationTool::GetBlind()
+	{
+		return m_blind;
 	}
 
 	std::vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
@@ -882,6 +887,7 @@ namespace UcitCalibrate
 		cv::Rodrigues(m_cameraRMatrix, m_cameraRMatrix33);
 		cout << "rotate33:" << m_cameraRMatrix33 << endl;
 		hconcat(m_cameraRMatrix33, m_cameraTMatrix, m_cameraRTMatrix44);
+		CalculateBlind();
 	}
 
 	void CalibrationTool::Pixel2Distance31(Point2d pixels, WorldDistance &Distances)

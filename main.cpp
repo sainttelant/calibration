@@ -480,7 +480,7 @@ int main()
 			
 		}
 		BlindArea results;
-		m_Calibrations.CalculateBlind(results);
+		
 		line(sourceImage, pointend, point1, Scalar(100, 0, 200), 3);
 
 		
