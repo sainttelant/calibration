@@ -86,7 +86,7 @@ namespace UcitCalibrate
 			double &installheight,
 			std::map<int, cv::Point3d> &map_Measures,
 			longandlat &originpoll,
-			cv::Mat &cameradistort,
+			std::vector<double> &ghostdistort,
 			cv::Mat &camerainstrinic);
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
@@ -95,7 +95,7 @@ namespace UcitCalibrate
 			cv::Mat &cameraRT33, 
 			cv::Mat &cameraRT31,
 			longandlat& originpoll,
-			cv::Mat& cameradistort,
+			std::vector<double>& ghostdistort,
 			cv::Mat& camerainstrinic
 			);
 

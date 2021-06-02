@@ -122,7 +122,7 @@ namespace UcitCalibrate
 		double &installheight, 
 		std::map<int, cv::Point3d> &map_Measures, 
 		longandlat &originpoll, 
-		cv::Mat &cameradistort, 
+		std::vector<double>& ghostdistort,
 		cv::Mat &camerainstrinic)
 	{
 		//读取xml文件中的参数值
@@ -290,24 +290,35 @@ namespace UcitCalibrate
 			}
 
 			// 读取相机畸变系数
-			cameradistort=cv::Mat::eye(5, 1, cv::DataType<double>::type);
-			if (NextElement->ValueTStr()=="cameradistort")
+		
+			if (NextElement->ValueTStr()=="distort")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
 				
 				while (BoxElement!=nullptr)
 				{
-					for (int i=0; i <5; i++)
+					if (BoxElement->ValueTStr()=="value0")
 					{
-						if (BoxElement->ValueTStr()=="value")
-						{
-							double value = atof(BoxElement->GetText());
-							cout << "get distort value:" << value << endl;
-							cameradistort.at<double>(i) =value;
-							BoxElement = BoxElement->NextSiblingElement();
-						}		
+						ghostdistort.push_back(atof(BoxElement->GetText()));
 					}
-					
+					if (BoxElement->ValueTStr() == "value1")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value2")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value3")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value4")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					BoxElement = BoxElement->NextSiblingElement();
+				
 				}
 			}
 
@@ -350,7 +361,7 @@ namespace UcitCalibrate
 		cv::Mat &cameraRT33, 
 		cv::Mat &cameraRT31,
 		longandlat& originpoll,
-		cv::Mat& cameradistort,
+		std::vector<double>& ghostdistort,
 		cv::Mat& camerainstrinic)
 	{
 		//读取xml文件中的参数值
@@ -480,7 +491,7 @@ namespace UcitCalibrate
 				}
 			}
 
-			cameradistort = cv::Mat::eye(5, 1, cv::DataType<double>::type);
+			/*cameradistort = cv::Mat::eye(5, 1, cv::DataType<double>::type);
 			if (NextElement->ValueTStr() == "cameradistort")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
@@ -494,6 +505,37 @@ namespace UcitCalibrate
 							BoxElement = BoxElement->NextSiblingElement();
 						
 					}
+
+				}
+			}*/
+
+			if (NextElement->ValueTStr() == "distort")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "value0")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value1")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value2")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value3")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					if (BoxElement->ValueTStr() == "value4")
+					{
+						ghostdistort.push_back(atof(BoxElement->GetText()));
+					}
+					BoxElement = BoxElement->NextSiblingElement();
 
 				}
 			}

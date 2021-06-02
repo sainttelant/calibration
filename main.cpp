@@ -152,7 +152,8 @@ int main()
 	std::map<int, double> mp_Gpslong, mp_Gpslat;
 
 	longandlat originallpoll,originallpoll1;
-	cv::Mat cameradistort, cameradistort1,camrainst, camrainst1;
+	cv::Mat  cameradistort1,camrainst, camrainst1;
+	vector<double> m_ghostdis,m_ghostdis1;
 	// read from xml config
 	m_Calibrations.ReadPickpointXml(m_xmlpath,
 		pickPointindex,
@@ -163,29 +164,30 @@ int main()
 		reflectorheight,
 		raderheight,
 		m_Measures,
-		originallpoll,cameradistort,camrainst);
+		originallpoll, m_ghostdis,camrainst);
 	for (int i = 0; i < 5; i++)
 	{
-		for (int j = 0; j < 1; j++)
+		
+			double value = m_ghostdis[i];
+			printf("cameradistort values:[%f] \n", value);
+		
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
 		{
-			double value = cameradistort.at<double>(i, j);
-			printf("cameradistort values:[%.16f] \n", value);
+			double value = camrainst.at<double>(i, j);
+			printf("camerains values:[%f] \n", value);
 		}
 	}
 
 
 	cv::Mat m_rt44, m_crt34, m_crt33, m_crt31;
 	m_Calibrations.ReadCalibrateParam(m_calixml, m_rt44, m_crt34, m_crt33, m_crt31, 
-		originallpoll1, cameradistort1, camrainst1);
+		originallpoll1, m_ghostdis1, camrainst1);
 
-	for (int i = 0; i<5;i++)
-	{
-		for (int j =0; j<1;j++)
-		{
-			double value = cameradistort1.at<double>(i, j);
-			printf("cameradistort1 values:[%.16f] \n", value);
-		}
-	}
+	
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -348,8 +350,12 @@ int main()
 		,camrainst.at<double>(1,2));
 
 	m_Calibrations.SetCameraDiff(-0.37926434, -1.35701064, 0.00229614642, 0.000660113081, 10.8547903);
-
-
+	
+	cv::Mat cameradistort = cv::Mat::eye(5, 1, DataType<double>::type);
+	for (int i=0; i <5;i++)
+	{
+		cameradistort.at<double>(i, 0) = m_ghostdis[i];
+	}
 	
     // 获得世界坐标系到像素坐标系的R_T矩阵
 	 //////PnP solve R&T///////////////////////////////

@@ -53,14 +53,14 @@
 	    <lng>121.30727344</lng>
 	    <lat>31.19672181 </lat>
 </originpoll>
+<distort>
+	<value0>-0.37926434</value0>
+	<value1>-1.35701064</value1>
+	<value2>0.00229614642</value2>
+	<value3>0.000660113081</value3>
+	<value4>10.8547903</value4>
+</distort>
 
-<cameradistort>
-	<value>-0.37926434</value>
-	<value>-1.35701064</value>
-	<value>0.00229614642</value>
-	<value>0.000660113081</value>
-	<value>10.8547903</value>
-</cameradistort>
 <camerainstrinic>
 	<fx>4379.81913</fx>
 	<fy>4404.48029</fy>
