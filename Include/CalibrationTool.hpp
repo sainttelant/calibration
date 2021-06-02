@@ -89,6 +89,16 @@ namespace UcitCalibrate
 			cv::Mat &cameradistort,
 			cv::Mat &camerainstrinic);
 
+		bool ReadCalibrateParam(std::string m_xmlpath,
+			cv::Mat &raderRT44, 
+			cv::Mat &cameraRT34, 
+			cv::Mat &cameraRT33, 
+			cv::Mat &cameraRT31,
+			longandlat& originpoll,
+			cv::Mat& cameradistort,
+			cv::Mat& camerainstrinic
+			);
+
 		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
 		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 

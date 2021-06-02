@@ -294,15 +294,20 @@ namespace UcitCalibrate
 			if (NextElement->ValueTStr()=="cameradistort")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
-				int count = 0;
+				
 				while (BoxElement!=nullptr)
 				{
-					if (BoxElement->ValueTStr()=="value")
+					for (int i=0; i <5; i++)
 					{
-						cameradistort.at<double>(count, 0) = atof(BoxElement->GetText());		
+						if (BoxElement->ValueTStr()=="value")
+						{
+							double value = atof(BoxElement->GetText());
+							cout << "get distort value:" << value << endl;
+							cameradistort.at<double>(i) =value;
+							BoxElement = BoxElement->NextSiblingElement();
+						}		
 					}
-					count += 1;
-					BoxElement = BoxElement->NextSiblingElement();
+					
 				}
 			}
 
@@ -336,6 +341,194 @@ namespace UcitCalibrate
 		}
 		delete Document;
 		std::cout << "完成xml的读取" << std::endl;
+		return true;
+	}
+
+	bool CalibrationTool::ReadCalibrateParam(std::string m_xmlpath, 
+		cv::Mat &raderRT44, 
+		cv::Mat &cameraRT34, 
+		cv::Mat &cameraRT33, 
+		cv::Mat &cameraRT31,
+		longandlat& originpoll,
+		cv::Mat& cameradistort,
+		cv::Mat& camerainstrinic)
+	{
+		//读取xml文件中的参数值
+		TiXmlDocument* Document = new TiXmlDocument();
+		if (!Document->LoadFile(m_xmlpath.c_str()))
+		{
+			std::cout << "无法加载标定参数xml文件！" << std::endl;
+			cin.get();
+			return false;
+		}
+		TiXmlElement* RootElement = Document->RootElement();		//根目录
+
+		TiXmlElement* NextElement = RootElement->FirstChildElement();		//根目录下的第一个节点层
+		// 初始化mat矩阵
+		raderRT44 = cv::Mat::eye(4, 4, cv::DataType<double>::type);
+		cameraRT34 = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
+		cameraRT31 = cv::Mat::zeros(3, 1, cv::DataType<double>::type);
+		cameraRT33 = cv::Mat::ones(3, 3, cv::DataType<double>::type);
+
+		while (NextElement != NULL)		//判断有没有读完
+		{
+			if (NextElement->ValueTStr() == "radarRT44")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				// 这里使用了mat的ptr指针，用法很有意思，请参考：
+				// https://blog.csdn.net/github_35160620/article/details/51708659
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr()=="index")
+					{
+						for (int rows =0; rows<4; rows++)
+						{
+							for (int cols =0; cols<4; cols++)
+							{
+								double value = atof(BoxElement->GetText());
+								cout<<"get value from calibrate xml:"<<value<<endl;
+								raderRT44.ptr<double>(rows)[cols] = value;
+								BoxElement = BoxElement->NextSiblingElement();
+							}
+						}
+					}	
+				}
+			}
+
+			if (NextElement->ValueTStr()=="cameraRT44")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				// 这里使用了mat的at方式
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "indexcamera")
+					{
+						for (int rows = 0; rows < 3; rows++)
+						{
+							for (int cols = 0; cols < 4; cols++)
+							{
+								double value = atof(BoxElement->GetText());
+								cout << "get value from calibrate xml:" << value << endl;
+								cameraRT34.at<double>(rows,cols) = value;
+								BoxElement = BoxElement->NextSiblingElement();
+							}
+						}
+					}
+				}
+			}
+			
+			if (NextElement->ValueTStr() == "cameraRT33")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				// 这里使用了mat的at方式
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "indexcamera33")
+					{
+						for (int rows = 0; rows < 3; rows++)
+						{
+							for (int cols = 0; cols < 3; cols++)
+							{
+								double value = atof(BoxElement->GetText());
+								cout << "get value from calibrate xml:" << value << endl;
+								cameraRT33.at<double>(rows, cols) = value;
+								BoxElement = BoxElement->NextSiblingElement();
+							}
+						}
+					}
+				}
+			}
+
+			if (NextElement->ValueTStr() == "cameraRT31")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				// 这里使用了mat的at方式
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "indexcamera31")
+					{
+						for (int rows = 0; rows < 3; rows++)
+						{
+							for (int cols = 0; cols < 1; cols++)
+							{
+								double value = atof(BoxElement->GetText());
+								cout << "get value from calibrate xml:" << value << endl;
+								cameraRT31.at<double>(rows, cols) = value;
+								BoxElement = BoxElement->NextSiblingElement();
+							}
+						}
+					}
+				}
+			}
+
+			if (NextElement->ValueTStr() == "originpoll")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				double tempoll;
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "lng")
+					{
+						tempoll = atof(BoxElement->GetText());
+						originpoll.longtitude = tempoll;
+					}
+					else if (BoxElement->ValueTStr() == "lat")
+					{
+						originpoll.latitude = atof(BoxElement->GetText());
+					}
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
+
+			cameradistort = cv::Mat::eye(5, 1, cv::DataType<double>::type);
+			if (NextElement->ValueTStr() == "cameradistort")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+
+				while (BoxElement != nullptr)
+				{
+					for (int i = 0; i < 5; i++)
+					{
+						
+							cameradistort.at<double>(i) = atof(BoxElement->GetText());
+							BoxElement = BoxElement->NextSiblingElement();
+						
+					}
+
+				}
+			}
+
+			camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
+			if (NextElement->ValueTStr() == "camerainstrinic")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "fx")
+					{
+						camerainstrinic.at<double>(0, 0) = atof(BoxElement->GetText());
+					}
+					if (BoxElement->ValueTStr() == "fy")
+					{
+						camerainstrinic.at<double>(1, 1) = atof(BoxElement->GetText());
+					}
+					if (BoxElement->ValueTStr() == "cx")
+					{
+						camerainstrinic.at<double>(0, 2) = atof(BoxElement->GetText());
+					}
+					if (BoxElement->ValueTStr() == "cy")
+					{
+						camerainstrinic.at<double>(1, 2) = atof(BoxElement->GetText());
+					}
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
+
+
+			NextElement = NextElement->NextSiblingElement();
+		}
+		delete Document;
+		std::cout << "完成标定参数xml的读取" << std::endl;
 		return true;
 	}
 
@@ -525,7 +718,7 @@ namespace UcitCalibrate
 	std::vector<GpsWorldCoord> CalibrationTool::GetGpsworlds()
 	{
 		return m_gpsworlds;
-	 }
+	}
 
 	void CalibrationTool::SetWorldBoxPoints()
 	{
@@ -568,7 +761,6 @@ namespace UcitCalibrate
 				gps_latiPick.push_back(itergpslat->second);
 			}
 		}
-
 	}
 
 	void CalibrationTool::PickMeasureMentValue4RadarRT(std::vector<unsigned int> pointsSet, std::map<int, cv::Point3d>& measurements)

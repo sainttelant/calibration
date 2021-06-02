@@ -128,6 +128,7 @@ int main()
 	// 创建输出参数文件，ios：：trunc含义是有文件先删除
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
 	std::string m_xmlpath = "input.xml";
+	std::string m_calixml = "calibration1.xml";
 
 	// 基于当前系统的当前日期/时间
 	time_t now = time(0);
@@ -150,8 +151,8 @@ int main()
 	std::map<int, Point2d> mp_images;
 	std::map<int, double> mp_Gpslong, mp_Gpslat;
 
-	longandlat originallpoll;
-	cv::Mat cameradistort, camrainst;
+	longandlat originallpoll,originallpoll1;
+	cv::Mat cameradistort, cameradistort1,camrainst, camrainst1;
 	// read from xml config
 	m_Calibrations.ReadPickpointXml(m_xmlpath,
 		pickPointindex,
@@ -163,6 +164,74 @@ int main()
 		raderheight,
 		m_Measures,
 		originallpoll,cameradistort,camrainst);
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 1; j++)
+		{
+			double value = cameradistort.at<double>(i, j);
+			printf("cameradistort values:[%.16f] \n", value);
+		}
+	}
+
+
+	cv::Mat m_rt44, m_crt34, m_crt33, m_crt31;
+	m_Calibrations.ReadCalibrateParam(m_calixml, m_rt44, m_crt34, m_crt33, m_crt31, 
+		originallpoll1, cameradistort1, camrainst1);
+
+	for (int i = 0; i<5;i++)
+	{
+		for (int j =0; j<1;j++)
+		{
+			double value = cameradistort1.at<double>(i, j);
+			printf("cameradistort1 values:[%.16f] \n", value);
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			double value = camrainst1.at<double>(i, j);
+			printf("instrinc values:[%.16f] \n", value);
+		}
+	}
+	for (int i=0;i<4;i++)
+	{
+		for (int j=0; j< 4;j++)
+		{
+			double value = m_rt44.at<double>(i,j);
+			printf("rader44 values:[%.16f] \n", value);
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			double value = m_crt34.at<double>(i, j);
+			printf("camera34 values:[%.16f] \n", value);
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			double value = m_crt33.at<double>(i, j);
+			printf("camera33 values:[%.16f] \n", value);
+		}
+	}
+
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 1; j++)
+		{
+			double value = m_crt31.at<double>(i, j);
+			printf("camera31 values:[%.16f] \n", value);
+		}
+	}
+
 
 
 	//处理measures
