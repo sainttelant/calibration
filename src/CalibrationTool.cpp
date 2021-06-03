@@ -129,8 +129,8 @@ namespace UcitCalibrate
 		TiXmlDocument* Document = new TiXmlDocument();
 		if (!Document->LoadFile(m_xmlpath.c_str()))
 		{
-			cout << "无法加载xml文件！" << endl;
-			cin.get();
+			std::cout << "无法加载xml文件！" << std::endl;
+			std::cin.get();
 			return false;
 		}
 		TiXmlElement* RootElement = Document->RootElement();		//根目录
@@ -582,8 +582,8 @@ namespace UcitCalibrate
 		TiXmlDocument* Document = new TiXmlDocument();
 		if (!Document->LoadFile(m_strXmlPath.c_str()))
 		{
-			cout << "无法加载xml文件！" << endl;
-			cin.get();
+			std::cout << "无法加载xml文件！" << std::endl;
+			std::cin.get();
 			return false;
 		}
 		TiXmlElement* RootElement = Document->RootElement();		//根目录
@@ -623,7 +623,7 @@ namespace UcitCalibrate
 		//释放内存
 		delete pNode;
 		delete Document;
-		cout << "完成xml的读取" << endl;
+		std::cout << "完成xml的读取" << std::endl;
 		return true;
 
 	}
