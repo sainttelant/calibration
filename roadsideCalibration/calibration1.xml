@@ -31,6 +31,11 @@
         <indexcamera>0.4423002212498489</indexcamera>
         <indexcamera>-0.08717732046909688</indexcamera>
         <indexcamera>32.52585553483271</indexcamera>
+        <indexcamera>0</indexcamera>
+        <indexcamera>0</indexcamera>
+        <indexcamera>0</indexcamera>
+	  <indexcamera>1</indexcamera>
+
     </cameraRT44>
     <cameraRT33>
         <indexcamera33>0.4473339829775879</indexcamera33>

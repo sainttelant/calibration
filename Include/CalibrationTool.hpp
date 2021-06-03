@@ -91,7 +91,7 @@ namespace UcitCalibrate
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
 			cv::Mat &raderRT44, 
-			cv::Mat &cameraRT34, 
+			cv::Mat &cameraRT44, 
 			cv::Mat &cameraRT33, 
 			cv::Mat &cameraRT31,
 			longandlat& originpoll,

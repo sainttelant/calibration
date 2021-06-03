@@ -168,8 +168,8 @@ int main()
 	for (int i = 0; i < 5; i++)
 	{
 		
-			double value = m_ghostdis[i];
-			printf("cameradistort values:[%f] \n", value);
+		double value = m_ghostdis[i];
+		printf("cameradistort values:[%f] \n", value);
 		
 	}
 
@@ -183,8 +183,8 @@ int main()
 	}
 
 
-	cv::Mat m_rt44, m_crt34, m_crt33, m_crt31;
-	m_Calibrations.ReadCalibrateParam(m_calixml, m_rt44, m_crt34, m_crt33, m_crt31, 
+	cv::Mat m_rt44, m_crt44, m_crt33, m_crt31;
+	m_Calibrations.ReadCalibrateParam(m_calixml, m_rt44, m_crt44, m_crt33, m_crt31, 
 		originallpoll1, m_ghostdis1, camrainst1);
 
 	
@@ -206,11 +206,11 @@ int main()
 		}
 	}
 
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			double value = m_crt34.at<double>(i, j);
+			double value = m_crt44.at<double>(i, j);
 			printf("camera34 values:[%.16f] \n", value);
 		}
 	}

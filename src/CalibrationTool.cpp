@@ -357,7 +357,7 @@ namespace UcitCalibrate
 
 	bool CalibrationTool::ReadCalibrateParam(std::string m_xmlpath, 
 		cv::Mat &raderRT44, 
-		cv::Mat &cameraRT34, 
+		cv::Mat &cameraRT44, 
 		cv::Mat &cameraRT33, 
 		cv::Mat &cameraRT31,
 		longandlat& originpoll,
@@ -377,7 +377,7 @@ namespace UcitCalibrate
 		TiXmlElement* NextElement = RootElement->FirstChildElement();		//根目录下的第一个节点层
 		// 初始化mat矩阵
 		raderRT44 = cv::Mat::eye(4, 4, cv::DataType<double>::type);
-		cameraRT34 = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
+		cameraRT44 = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
 		cameraRT31 = cv::Mat::zeros(3, 1, cv::DataType<double>::type);
 		cameraRT33 = cv::Mat::ones(3, 3, cv::DataType<double>::type);
 
@@ -414,13 +414,13 @@ namespace UcitCalibrate
 				{
 					if (BoxElement->ValueTStr() == "indexcamera")
 					{
-						for (int rows = 0; rows < 3; rows++)
+						for (int rows = 0; rows < 4; rows++)
 						{
 							for (int cols = 0; cols < 4; cols++)
 							{
 								double value = atof(BoxElement->GetText());
 								cout << "get value from calibrate xml:" << value << endl;
-								cameraRT34.at<double>(rows,cols) = value;
+								cameraRT44.at<double>(rows,cols) = value;
 								BoxElement = BoxElement->NextSiblingElement();
 							}
 						}
