@@ -1,5 +1,8 @@
 #pragma once
 #include <opencv2/opencv.hpp>
+#include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
+
 #include <iostream>
 #include <string>
 #include <ctype.h>

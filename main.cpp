@@ -4,6 +4,7 @@
 #include <ctime>
 using namespace UcitCalibrate;
 
+//#define readcalib
 
 string dou2str(double num,int precision = 16)   //num也可以是int类型
 {
@@ -134,6 +135,8 @@ int main()
 	time_t now = time(0);
 	// 把 now 转换为字符串形式
 	
+
+
 	
 	CalibrationTool  &m_Calibrations = CalibrationTool::getInstance();
 	//CalibrationTool  &m_WholeCalibrations = CalibrationTool::getInstance();
@@ -151,11 +154,14 @@ int main()
 	std::map<int, Point2d> mp_images;
 	std::map<int, double> mp_Gpslong, mp_Gpslat;
 
-	longandlat originallpoll,originallpoll1;
-	cv::Mat  cameradistort1,camrainst, camrainst1;
-	vector<double> m_ghostdis,m_ghostdis1;
+	longandlat originallpoll;
+	cv::Mat  cameradistort1,camrainst;
+	vector<double> m_ghostdis;
 	// read from xml config
-	m_Calibrations.ReadPickpointXml(m_xmlpath,
+
+#ifndef  readcalib
+
+		m_Calibrations.ReadPickpointXml(m_xmlpath,
 		pickPointindex,
 		boxPoints,
 		mp_images,
@@ -164,28 +170,32 @@ int main()
 		reflectorheight,
 		raderheight,
 		m_Measures,
-		originallpoll, m_ghostdis,camrainst);
-	for (int i = 0; i < 5; i++)
-	{
-		
-		double value = m_ghostdis[i];
-		printf("cameradistort values:[%f] \n", value);
-		
-	}
+		originallpoll, m_ghostdis, camrainst);
 
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 3; j++)
+		//处理measures
+		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
+		std::map<int, Point3d>::iterator iter_end = m_Measures.end();
+		for (; iter_begin != iter_end; iter_begin++)
 		{
-			double value = camrainst.at<double>(i, j);
-			printf("camerains values:[%f] \n", value);
+			double ydist = iter_begin->second.y;
+			double ynew = sqrt(ydist * ydist - pow(6 - 1.2, 2));
+			iter_begin->second.y = ynew;
+			cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
+
 		}
-	}
+
+		m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
+		m_Calibrations.SetRadarHeight(reflectorheight);
+
+#endif
+	
+
+	
 
 
 	cv::Mat m_rt44, m_crt44, m_crt33, m_crt31;
 	m_Calibrations.ReadCalibrateParam(m_calixml, m_rt44, m_crt44, m_crt33, m_crt31, 
-		originallpoll1, m_ghostdis1, camrainst1);
+		originallpoll, m_ghostdis, camrainst);
 
 	
 
@@ -193,7 +203,7 @@ int main()
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			double value = camrainst1.at<double>(i, j);
+			double value = camrainst.at<double>(i, j);
 			printf("instrinc values:[%.16f] \n", value);
 		}
 	}
@@ -234,24 +244,18 @@ int main()
 		}
 	}
 
+	// 测试转eigen
+	Eigen::Matrix4d raderRT;
+	cv::cv2eigen(m_rt44, raderRT);
 
 
-	//处理measures
-	std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
-	std::map<int, Point3d>::iterator iter_end = m_Measures.end();
-	for (; iter_begin != iter_end; iter_begin++)
-	{
-		double ydist = iter_begin->second.y;
-		double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
-		iter_begin->second.y = ynew;
-		cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
-
-	}
+	
 
 	//setpi
 	m_Calibrations.SetPi(CV_PI);
-	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
-	m_Calibrations.SetRadarHeight(reflectorheight);
+
+
+	
 	std::vector<CalibrationTool::BoxSize> mv_results;
 	m_Calibrations.PickImagePixelPoints4PnPsolve(pickPointindex, mp_images);
 	//m_WholeCalibrations.PickImagePixelPoints4PnPsolve(wholeindex, mp_images);
@@ -349,40 +353,68 @@ int main()
 		camrainst.at<double>(0,2)
 		,camrainst.at<double>(1,2));
 
-	m_Calibrations.SetCameraDiff(-0.37926434, -1.35701064, 0.00229614642, 0.000660113081, 10.8547903);
-	
 	cv::Mat cameradistort = cv::Mat::eye(5, 1, DataType<double>::type);
-	for (int i=0; i <5;i++)
+	for (int i = 0; i < 5; i++)
 	{
 		cameradistort.at<double>(i, 0) = m_ghostdis[i];
 	}
+
+	m_Calibrations.SetCameraDiff(
+		cameradistort.at<double>(0,0),
+		cameradistort.at<double>(1, 0),
+		cameradistort.at<double>(2, 0),
+		cameradistort.at<double>(3, 0),
+		cameradistort.at<double>(4, 0)
+	);
+	
+	
 	
     // 获得世界坐标系到像素坐标系的R_T矩阵
 	 //////PnP solve R&T///////////////////////////////
 	cv::Mat rvec1(3, 1, cv::DataType<double>::type);  //旋转向量
 	cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
 
-    //调用 pnp solve 函数
 
+#ifndef readcalib
+
+	 //调用 pnp solve 函数
 	if (rasac)
 	{
 		cv::solvePnPRansac(worldBoxPoints, m_Calibrations.imagePixel_pick, camrainst, cameradistort, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
 	}
 	else
 	{
-		if (pickPointindex.size()>4)
+		if (pickPointindex.size() > 4)
 		{
 			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, camrainst, cameradistort, rvec1, tvec1, false, SOLVEPNP_ITERATIVE);
 		}
 		else
 		{
 			cv::solvePnP(worldBoxPoints, m_Calibrations.imagePixel_pick, camrainst, cameradistort, rvec1, tvec1, false, SOLVEPNP_P3P);
-		}	
+		}
 	}
 
 	bool useRTK = true;
-	m_Calibrations.CalibrateCamera(rasac,useRTK, pickPointindex);
+	m_Calibrations.CalibrateCamera(rasac, useRTK, pickPointindex);
+
+
+#endif
+   
 	
+#ifdef readcalib
+	// 全是使用读取的参数写进去
+	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetRadarRT44(m_rt44);
+	m_Calibrations.SetCameraRT44(m_crt44);
+	m_Calibrations.SetCameraRT33(m_crt33);
+	m_Calibrations.SetCameraTMatrix(m_crt31);
+	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
+
+	
+
+#endif
+
+
 	RadarSpeed m_radar;
 	RadarHeading m_radarr;
 	m_radar.vx = -3;
@@ -416,7 +448,7 @@ int main()
 
 		// 反推12个点投影到pixel坐标,以下用新构造的点来计算
 		vector<Point3d> m_fantuiceshi;
-		Gps2WorldCoord4test(6378245,reflectorheight, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
+		Gps2WorldCoord4test(6378245,1.2, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
 
 		vector<Point3d>::iterator iter = m_fantuiceshi.begin();
 		for (; iter!= m_fantuiceshi.end(); iter++)
