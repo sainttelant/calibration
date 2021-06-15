@@ -706,10 +706,33 @@ namespace UcitCalibrate
 
 	void CalibrationTool::radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat)
 	{
-		double val = m_PI/180.0;
+		cv::Mat RadarPoint = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+		cv::Mat world_point = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+		cv::Mat imagetmp = cv::Mat::ones(3, 1, cv::DataType<double>::type);
+		RadarPoint.at<double>(0, 0) = -m_gpsworldcoord.X;
+		RadarPoint.at<double>(1, 0) = m_gpsworldcoord.Y;
+		RadarPoint.at<double>(2, 0) = m_radarheight;
+		world_point = m_RadarRT * RadarPoint;
+		
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 1; j++)
+			{
+				double value = world_point.at<double>(i, j);
+				printf("ÊÀ½ç×ø±ê:[%.16f] \n", value);
+			}
+		}
+		double val = m_PI / 180.0;
+		double worldX = world_point.at<double>(0, 0);
+		double worldY = world_point.at<double>(1, 0);
+		printf("worldXY[%.5f,%.5f] \n", worldX, worldY);
+		m_gpslongandlat.latitude = (worldY * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
+		m_gpslongandlat.longtitude = (worldX * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val))) + m_originlongitude;
 
-		m_gpslongandlat.latitude = (m_gpsworldcoord.Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
-		m_gpslongandlat.longtitude = (m_gpsworldcoord.X * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val))) + m_originlongitude;
+		
+		
+		/*m_gpslongandlat.latitude = (m_gpsworldcoord.Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
+		m_gpslongandlat.longtitude = (m_gpsworldcoord.X * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val))) + m_originlongitude;*/
 
 	}
 
@@ -717,11 +740,22 @@ namespace UcitCalibrate
 	{
 		double val = m_PI / 180.0;
 
+			GpsWorldCoord temp;
+			temp.X = 2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val)) * ((m_gpslongandlat.longtitude - m_originlongitude) / 360);
+			temp.Y = 2 * m_PI * m_earthR * ((m_gpslongandlat.latitude - m_originlatitude) / 360);
+			temp.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
 			
-			m_gpsworldcoord.X = 2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val)) * ((m_gpslongandlat.longtitude - m_originlongitude) / 360);
-			m_gpsworldcoord.Y = 2 * m_PI * m_earthR * ((m_gpslongandlat.latitude - m_originlatitude) / 360);
-			m_gpsworldcoord.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
-			
+			cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
+			cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
+			Distance_W4.at<double>(0, 0) = temp.X;
+			Distance_W4.at<double>(1, 0) = temp.Y;
+			Distance_W4.at<double>(2, 0) = m_radarheight;
+			Distance_W4.at<double>(3, 0) = 0;
+			radar_Dis = m_RadarRT.inv() * Distance_W4;
+			m_gpsworldcoord.X = -radar_Dis.at<double>(0, 0);
+			m_gpsworldcoord.Y = radar_Dis.at<double>(1, 0);
+			m_gpsworldcoord.Distance = radar_Dis.at<double>(2, 0);
+
 	}
 
 	bool CalibrationTool::CalculateBlind()
