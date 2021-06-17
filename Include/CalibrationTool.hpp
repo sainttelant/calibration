@@ -22,6 +22,7 @@ namespace UcitCalibrate
 	{
 		double X;
 		double Y;
+		// distacne 有时候也代表1.2m，注意区分
 		double Distance;
 	};
 

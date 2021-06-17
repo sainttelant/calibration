@@ -67,10 +67,10 @@ namespace UcitCalibrate
 		double m_world2radar_theta = deg(acos(m_RadarRT.at<double>(0, 0)));
 		if (m_speed.vy!=0)
 		{
-			double theta = atan(m_speed.vx / m_speed.vy);
+			double theta = atan(-m_speed.vx / m_speed.vy);
 			
 			// 计算雷达速度的反正切
-			double m_radarrange = deg(atan(m_speed.vx / m_speed.vy));
+			double m_radarrange = deg(theta);
 			std::cout << "雷达反正切" << m_radarrange << std::endl;
 			if (m_speed.vy > 0)
 			{
@@ -84,7 +84,7 @@ namespace UcitCalibrate
 		}
 		else
 		{
-			if (m_speed.vx>0)
+			if (-m_speed.vx>0)
 			{
 				m_radarhead.theta = 90 + m_world2radar_theta;
 			}
@@ -713,6 +713,7 @@ namespace UcitCalibrate
 		RadarPoint.at<double>(1, 0) = m_gpsworldcoord.Y;
 		RadarPoint.at<double>(2, 0) = m_radarheight;
 		world_point = m_RadarRT * RadarPoint;
+		std::cout<<"radar2gps:\t"<<"radarrt:"<<m_RadarRT<<std::endl;
 		
 		for (int i = 0; i < 4; i++)
 		{
