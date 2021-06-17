@@ -9,6 +9,8 @@ using namespace UcitCalibrate;
 #define Readcalibratexml 
 //#define  calibrateradar
 
+#define writecalibratexml
+
 string dou2str(double num,int precision = 16)   //num也可以是int类型
 {
 	stringstream ss;      //stringstream需要sstream头文件
@@ -117,7 +119,7 @@ int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44,cv::Mat *cameraRT33,cv:
 		}
 	}
 	
-	writeDoc->SaveFile("calibration.xml");
+	writeDoc->SaveFile("calibration2.xml");
 	delete writeDoc;
 
 	return 1;
@@ -132,11 +134,7 @@ int main()
 	// 创建输出参数文件，ios：：trunc含义是有文件先删除
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
 	//std::string m_xmlpath = "input.xml";   //原来的标定
-	//std::string m_xmlpath = "input0616.xml"; //全22个点
-	//std::string m_xmlpath = "input0616_remove_front4point.xml"; //最近4个点不使用
-	//std::string m_xmlpath = "input0616_usefront10.xml"; //只使用前10个点
-
-	std::string m_xmlpath = "input0616_remove_point2.xml"; //最近4个点不使用
+	std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
 	std::string m_calixml = "calibration1.xml";
 
 	// 基于当前系统的当前日期/时间
@@ -446,10 +444,17 @@ int main()
 		outfile << "CameraTmatrix:" << m_Calibrations.m_cameraTMatrix << "\n" << endl;
 	
 		
-#if 0
+#ifdef writecalibratexml
 		// generate xml files to store rt matrix
+#ifndef Readcalibratexml
 		int flag = writeXmlFile(&RT, &RT_, &m_Calibrations.m_cameraRMatrix33, \
 			& m_Calibrations.m_cameraTMatrix);
+#else
+		
+		int flag = writeXmlFile(&m_rt44, &RT_, &m_Calibrations.m_cameraRMatrix33, \
+			& m_Calibrations.m_cameraTMatrix);
+#endif
+		
 #endif
 		
 

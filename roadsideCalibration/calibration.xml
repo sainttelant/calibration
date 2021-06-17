@@ -19,33 +19,58 @@
         <index>1</index>
     </radarRT44>
     <cameraRT44>
-        <indexcamera>0.4473339829775879</indexcamera>
-        <indexcamera>-0.892985783865156</indexcamera>
-        <indexcamera>0.04968598885138797</indexcamera>
-        <indexcamera>-0.4190385424437171</indexcamera>
-        <indexcamera>-0.05587198399237409</indexcamera>
-        <indexcamera>-0.08334808994252813</indexcamera>
-        <indexcamera>-0.9949529724100976</indexcamera>
-        <indexcamera>5.805172973490366</indexcamera>
-        <indexcamera>0.8926200922442669</indexcamera>
-        <indexcamera>0.4423002212498489</indexcamera>
-        <indexcamera>-0.08717732046909688</indexcamera>
-        <indexcamera>32.52585553483271</indexcamera>
+	  <indexcamera>0.4478025101915974</indexcamera>
+        <indexcamera>-0.8937688131837996</indexcamera>
+        <indexcamera>0.02549942050569015</indexcamera>
+        <indexcamera>-0.7673635511217003</indexcamera>
+        <indexcamera>-0.07175027276013257</indexcamera>
+        <indexcamera>-0.06434624861489646</indexcamera>
+        <indexcamera>-0.9953448943195702</indexcamera>
+        <indexcamera>6.653932314568682</indexcamera>
+        <indexcamera>0.8912490169559517</indexcamera>
+        <indexcamera>0.4438883518061854</indexcamera>
+        <indexcamera>-0.09294256778160093</indexcamera>
+        <indexcamera>15.86415010854257</indexcamera>
+        <indexcamera>0</indexcamera>
+        <indexcamera>0</indexcamera>
+        <indexcamera>0</indexcamera>
+	  <indexcamera>1</indexcamera>
+
     </cameraRT44>
     <cameraRT33>
-        <indexcamera33>0.4473339829775879</indexcamera33>
-        <indexcamera33>-0.892985783865156</indexcamera33>
-        <indexcamera33>0.04968598885138797</indexcamera33>
-        <indexcamera33>-0.05587198399237409</indexcamera33>
-        <indexcamera33>-0.08334808994252813</indexcamera33>
-        <indexcamera33>-0.9949529724100976</indexcamera33>
-        <indexcamera33>0.8926200922442669</indexcamera33>
-        <indexcamera33>0.4423002212498489</indexcamera33>
-        <indexcamera33>-0.08717732046909688</indexcamera33>
+        <indexcamera33>0.4478025101915974</indexcamera33>
+        <indexcamera33>-0.8937688131837996</indexcamera33>
+        <indexcamera33>0.02549942050569015</indexcamera33>
+        <indexcamera33>-0.07175027276013257</indexcamera33>
+        <indexcamera33>-0.06434624861489646</indexcamera33>
+        <indexcamera33>-0.9953448943195702</indexcamera33>
+        <indexcamera33>0.8912490169559517</indexcamera33>
+        <indexcamera33>0.4438883518061854</indexcamera33>
+        <indexcamera33>-0.09294256778160093</indexcamera33>
     </cameraRT33>
     <cameraRT31>
-        <indexcamera31>-0.4190385424437171</indexcamera31>
-        <indexcamera31>5.805172973490366</indexcamera31>
-        <indexcamera31>32.52585553483271</indexcamera31>
+        <indexcamera31>-0.7673635511217003</indexcamera31>
+        <indexcamera31>6.653932314568682</indexcamera31>
+        <indexcamera31>15.86415010854257</indexcamera31>
     </cameraRT31>
+
+ <originpoll>
+	    <lng>121.30727344</lng>
+	    <lat>31.19672181 </lat>
+</originpoll>
+<distort>
+	<value0>-0.37926434</value0>
+	<value1>-1.35701064</value1>
+	<value2>0.00229614642</value2>
+	<value3>0.000660113081</value3>
+	<value4>10.8547903</value4>
+</distort>
+
+<camerainstrinic>
+	<fx>4379.81913</fx>
+	<fy>4404.48029</fy>
+	<cx>1280.19495</cx>
+	<cy>719.938094</cy>
+</camerainstrinic>
+
 </CalibInfo>

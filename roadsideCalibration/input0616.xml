@@ -45,12 +45,11 @@
  </radarmeasure>
  
  <pickpoint>
-           
-           <index>1</index>
-            <index>2</index>
+		<index>1</index>
+		<index>2</index>
             <index>3</index>
             <index>4</index>
-           <index>5</index>
+            <index>5</index>
             <index>6</index>
             <index>7</index>
             <index>8</index>
@@ -142,7 +141,7 @@
 <lon>121.30914964</lon>
 <lon>121.30915328</lon>
 <lan>31.19680946</lan>
-<lan>31.19772029</lan>
+<lan>31.19672029</lan>
 <lan>31.19677286</lan>
 <lan>31.19673163</lan>
 <lan>31.19686588</lan>
