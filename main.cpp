@@ -46,7 +46,14 @@ void Gps2WorldCoord4test(double earthR,double handleheight, \
 
 // 创建xml文件
 
-int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44,cv::Mat *cameraRT33,cv::Mat *cameraRT31)
+int writeXmlFile(cv::Mat *raderRT44,
+	cv::Mat *cameraRT44,
+	cv::Mat *cameraRT33,
+	cv::Mat *cameraRT31,
+	double m_longtitude,
+	double m_latititude,
+	cv::Mat *cameraDist,
+	cv::Mat *camerainstrinic)
 {
 	if (raderRT44==nullptr || cameraRT44==nullptr)
 	{
@@ -91,6 +98,24 @@ int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44,cv::Mat *cameraRT33,cv:
 		}
 	}
 
+	for (int i = 0; i < 4; i++)
+	{
+		TiXmlElement* index = new TiXmlElement("indexcamera");
+		CameraElement->LinkEndChild(index);
+		if (i!=3)
+		{
+			std::string value = "0";
+			TiXmlText* values = new TiXmlText(value.c_str());
+			index->LinkEndChild(values);
+		}
+		else
+		{
+			std::string value = "1";
+			TiXmlText* values = new TiXmlText(value.c_str());
+			index->LinkEndChild(values);
+		}
+	}
+
 	TiXmlElement* CameraElement33 = new TiXmlElement("cameraRT33");
 	RootElement->LinkEndChild(CameraElement33);
 	for (int r = 0; r < cameraRT33->rows; r++)
@@ -118,12 +143,92 @@ int writeXmlFile(cv::Mat *raderRT44, cv::Mat *cameraRT44,cv::Mat *cameraRT33,cv:
 			index->LinkEndChild(value);
 		}
 	}
-	
-	writeDoc->SaveFile("calibration2.xml");
-	delete writeDoc;
 
-	return 1;
+
+	TiXmlElement* originpoll = new TiXmlElement("originpoll");
+	RootElement->LinkEndChild(originpoll);
+	for (int r = 0; r < 2; r++)
+	{
+		if (r ==0 )
+		{
+			TiXmlElement* lng = new TiXmlElement("lng");
+			originpoll->LinkEndChild(lng);
+			std::string value = dou2str(m_longtitude);
+			TiXmlText* values = new TiXmlText(value.c_str());
+			lng->LinkEndChild(values);
+		}
+		else
+		{
+			TiXmlElement* lat = new TiXmlElement("lat");
+			originpoll->LinkEndChild(lat);
+			std::string value = dou2str(m_latititude);
+			TiXmlText* values = new TiXmlText(value.c_str());
+			lat->LinkEndChild(values);
+		}
+	}
+
+
+	TiXmlElement* distort = new TiXmlElement("distort");
+	RootElement->LinkEndChild(distort);
+	char zifu[256];
+	for (int i=0; i < 5;i++)
+	{
+		sprintf(zifu, "value%d", i);
+		TiXmlElement* index = new TiXmlElement(zifu);
+		distort->LinkEndChild(index);
+		std::string value = dou2str(cameraDist->at<double>(i, 0));
+		TiXmlText* values = new TiXmlText(value.c_str());
+		index->LinkEndChild(values);
+	}
+
+	TiXmlElement* camerainstri = new TiXmlElement("camerainstrinic");
+	RootElement->LinkEndChild(camerainstri);
+
+	for (int i=0;i < 4;i++)
+	{
+		std::string value = "";
+		
+			if (i == 0)
+			{
+				value = dou2str(camerainstrinic->at<double>(0, 0));
+				TiXmlElement* fx = new TiXmlElement("fx");
+				camerainstri->LinkEndChild(fx);
+				TiXmlText* values = new TiXmlText(value.c_str());
+				fx->LinkEndChild(values);
+			}
+			else if (i == 1)
+			{
+				value = dou2str(camerainstrinic->at<double>(1, 1));
+				TiXmlElement* fy = new TiXmlElement("fy");
+				camerainstri->LinkEndChild(fy);
+				TiXmlText* values = new TiXmlText(value.c_str());
+				fy->LinkEndChild(values);
+			}
+			else if (i ==2)
+			{
+				value = dou2str(camerainstrinic->at<double>(0, 2));
+				TiXmlElement* cx = new TiXmlElement("cx");
+				camerainstri->LinkEndChild(cx);
+				TiXmlText* values = new TiXmlText(value.c_str());
+				cx->LinkEndChild(values);
+			}
+			else
+			{
+				value = dou2str(camerainstrinic->at<double>(1, 2));
+				TiXmlElement* cy = new TiXmlElement("cy");
+				camerainstri->LinkEndChild(cy);
+				TiXmlText* values = new TiXmlText(value.c_str());
+				cy->LinkEndChild(values);
+			}
+		}
+
+		writeDoc->SaveFile("calibration2.xml");
+		delete writeDoc;
+
+		return 1;
 }
+
+
 
 
 
@@ -445,14 +550,19 @@ int main()
 	
 		
 #ifdef writecalibratexml
+
+		double poll_lon, poll_lat;
+		poll_lon = originallpoll.longtitude;
+		poll_lat = originallpoll.latitude;
 		// generate xml files to store rt matrix
 #ifndef Readcalibratexml
 		int flag = writeXmlFile(&RT, &RT_, &m_Calibrations.m_cameraRMatrix33, \
-			& m_Calibrations.m_cameraTMatrix);
+			& m_Calibrations.m_cameraTMatrix,
+			poll_lon,poll_lat,&cameradistort,&camrainst);
 #else
 		
 		int flag = writeXmlFile(&m_rt44, &RT_, &m_Calibrations.m_cameraRMatrix33, \
-			& m_Calibrations.m_cameraTMatrix);
+			& m_Calibrations.m_cameraTMatrix, poll_lon, poll_lat, &cameradistort, &camrainst);
 #endif
 		
 #endif
