@@ -53,7 +53,9 @@ int writeXmlFile(cv::Mat *raderRT44,
 	double m_longtitude,
 	double m_latititude,
 	cv::Mat *cameraDist,
-	cv::Mat *camerainstrinic)
+	cv::Mat *camerainstrinic,
+	double handheight,
+	double radarinstallheight)
 {
 	if (raderRT44==nullptr || cameraRT44==nullptr)
 	{
@@ -222,6 +224,23 @@ int writeXmlFile(cv::Mat *raderRT44,
 			}
 		}
 
+	TiXmlElement* handradarheight = new TiXmlElement("handradarheight");
+	RootElement->LinkEndChild(handradarheight);
+	TiXmlElement* height = new TiXmlElement("height");
+	handradarheight->LinkEndChild(height);
+	std::string handheight_str = dou2str(handheight);
+	TiXmlText* values = new TiXmlText(handheight_str.c_str());
+	height->LinkEndChild(values);
+
+	TiXmlElement* radarinstall = new TiXmlElement("radarinstallheight");
+	RootElement->LinkEndChild(radarinstall);
+	TiXmlElement* heightrader = new TiXmlElement("height");
+	radarinstall->LinkEndChild(heightrader);
+	std::string installheights = dou2str(radarinstallheight);
+	TiXmlText* isntallvalues = new TiXmlText(installheights.c_str());
+	heightrader->LinkEndChild(isntallvalues);
+
+
 		writeDoc->SaveFile("calibration2.xml");
 		delete writeDoc;
 
@@ -240,7 +259,7 @@ int main()
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
 	//std::string m_xmlpath = "input.xml";   //原来的标定
 	std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
-	std::string m_calixml = "calibration1.xml";
+	std::string m_calixml = "calibration2.xml";
 
 	// 基于当前系统的当前日期/时间
 	time_t now = time(0);
@@ -305,10 +324,15 @@ int main()
 
 #ifdef Readcalibratexml
 		cv::Mat m_rt44, m_crt44, m_crt33, m_crt31;
+		double radargaodu, shouchigao;
 		m_Calibrations.ReadCalibrateParam(m_calixml, m_rt44, m_crt44, m_crt33, m_crt31,
-			originallpoll, m_ghostdis, camrainst);
+			originallpoll, m_ghostdis, camrainst,shouchigao,radargaodu);
 
-
+		for (int i =0; i< m_ghostdis.size(); i++)
+		
+		{
+			printf("dist %f \n", m_ghostdis[i]);
+		}
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -558,11 +582,12 @@ int main()
 #ifndef Readcalibratexml
 		int flag = writeXmlFile(&RT, &RT_, &m_Calibrations.m_cameraRMatrix33, \
 			& m_Calibrations.m_cameraTMatrix,
-			poll_lon,poll_lat,&cameradistort,&camrainst);
+			poll_lon,poll_lat,&cameradistort,&camrainst,reflectorheight,raderheight);
 #else
 		
 		int flag = writeXmlFile(&m_rt44, &RT_, &m_Calibrations.m_cameraRMatrix33, \
-			& m_Calibrations.m_cameraTMatrix, poll_lon, poll_lat, &cameradistort, &camrainst);
+			& m_Calibrations.m_cameraTMatrix, poll_lon, poll_lat, &cameradistort, &camrainst, \
+			reflectorheight, raderheight);
 #endif
 		
 #endif

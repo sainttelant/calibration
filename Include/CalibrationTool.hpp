@@ -100,7 +100,9 @@ namespace UcitCalibrate
 			cv::Mat &cameraRT31,
 			longandlat& originpoll,
 			std::vector<double>& ghostdistort,
-			cv::Mat& camerainstrinic
+			cv::Mat& camerainstrinic,
+			double &m_handradarheight,
+			double &m_radarinstallheight
 			);
 
 		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);

@@ -362,7 +362,9 @@ namespace UcitCalibrate
 		cv::Mat &cameraRT31,
 		longandlat& originpoll,
 		std::vector<double>& ghostdistort,
-		cv::Mat& camerainstrinic)
+		cv::Mat& camerainstrinic,
+		double& m_handradarheight,
+		double& m_radarinstallheight)
 	{
 		//读取xml文件中的参数值
 		TiXmlDocument* Document = new TiXmlDocument();
@@ -380,7 +382,7 @@ namespace UcitCalibrate
 		cameraRT44 = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
 		cameraRT31 = cv::Mat::zeros(3, 1, cv::DataType<double>::type);
 		cameraRT33 = cv::Mat::ones(3, 3, cv::DataType<double>::type);
-
+		camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
 		while (NextElement != NULL)		//判断有没有读完
 		{
 			if (NextElement->ValueTStr() == "radarRT44")
@@ -540,7 +542,7 @@ namespace UcitCalibrate
 				}
 			}
 
-			camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
+			
 			if (NextElement->ValueTStr() == "camerainstrinic")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
@@ -549,6 +551,7 @@ namespace UcitCalibrate
 					if (BoxElement->ValueTStr() == "fx")
 					{
 						camerainstrinic.at<double>(0, 0) = atof(BoxElement->GetText());
+						printf("instrinc %f \n", camerainstrinic.at<double>(0, 0));
 					}
 					if (BoxElement->ValueTStr() == "fy")
 					{
@@ -566,9 +569,35 @@ namespace UcitCalibrate
 				}
 			}
 
+			/*if (NextElement->ValueTStr()=="handradarheight")
+			{
+				TiXmlElement* BoxE = NextElement->FirstChildElement();
+				while (BoxE!= nullptr)
+				{
+					if (BoxE->ValueTStr()=="height")
+					{
+						m_handradarheight = atof(BoxE->GetText());
+					}
+					BoxE = BoxE->NextSiblingElement();
+				}
+			}
 
+			if (NextElement->ValueTStr() == "radarinstallheight")
+			{
+				TiXmlElement* BoxE = NextElement->FirstChildElement();
+				while (BoxE != nullptr)
+				{
+					if (BoxE->ValueTStr() == "height")
+					{
+						m_radarinstallheight = atof(BoxE->GetText());
+					}
+					BoxE = BoxE->NextSiblingElement();
+				}
+			}*/
 			NextElement = NextElement->NextSiblingElement();
 		}
+
+
 		delete Document;
 		std::cout << "完成标定参数xml的读取" << std::endl;
 		return true;
