@@ -6,8 +6,8 @@
 using namespace UcitCalibrate;
 
 //#define readcalib
-#define Readcalibratexml 
-//#define  calibrateradar
+//#define Readcalibratexml 
+#define  calibrateradar
 
 #define writecalibratexml
 
@@ -257,10 +257,8 @@ int main()
 	// 准备的是图像上的像素点
 	// 创建输出参数文件，ios：：trunc含义是有文件先删除
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
-	//std::string m_xmlpath = "input.xml";   //原来的标定
-	std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
-	std::string m_calixml = "calibration2.xml";
-
+	std::string m_xmlpath = "input.xml";   //原来的标定
+	
 	// 基于当前系统的当前日期/时间
 	time_t now = time(0);
 	// 把 now 转换为字符串形式
