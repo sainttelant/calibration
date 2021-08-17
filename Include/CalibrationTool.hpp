@@ -105,7 +105,7 @@ namespace UcitCalibrate
 			double &m_radarinstallheight
 			);
 
-		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
+		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la, std::vector<double> &m_gpsheights);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
 		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 
 		void Gps2radarworld(longandlat& m_gpslongandlat, GpsWorldCoord& m_gpsworldcoord);
@@ -114,6 +114,8 @@ namespace UcitCalibrate
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系
 		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);
 		void Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels);
+
+		void Gps2Pixel(GpsWorldCoord &m_gpscoord, cv::Point2d &pixels);
 
 		bool CalculateBlind();
 		BlindArea GetBlind();

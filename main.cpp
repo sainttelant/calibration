@@ -6,8 +6,8 @@
 using namespace UcitCalibrate;
 
 //#define readcalib
-#define Readcalibratexml 
-//#define  calibrateradar
+//#define Readcalibratexml 
+#define  calibrateradar
 
 #define writecalibratexml
 
@@ -241,7 +241,7 @@ int writeXmlFile(cv::Mat *raderRT44,
 	heightrader->LinkEndChild(isntallvalues);
 
 
-		writeDoc->SaveFile("calibration2.xml");
+		writeDoc->SaveFile("calibration.xml");
 		delete writeDoc;
 
 		return 1;
@@ -257,8 +257,8 @@ int main()
 	// 准备的是图像上的像素点
 	// 创建输出参数文件，ios：：trunc含义是有文件先删除
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
-	//std::string m_xmlpath = "input.xml";   //原来的标定
-	std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
+	std::string m_xmlpath = "input.xml";   //原来的标定
+	//std::string m_xmlpath = "input1.xml"; //最近4个点不使用
 	std::string m_calixml = "calibration2.xml";
 
 	// 基于当前系统的当前日期/时间
@@ -305,14 +305,14 @@ int main()
 		//处理measures
 		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
 		std::map<int, Point3d>::iterator iter_end = m_Measures.end();
-		for (; iter_begin != iter_end; iter_begin++)
+		/*for (; iter_begin != iter_end; iter_begin++)
 		{
 			double ydist = iter_begin->second.y;
-			double ynew = sqrt(ydist * ydist - pow(6 - 1.2, 2));
+			double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
 			iter_begin->second.y = ynew;
 			cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
 
-		}
+		}*/
 
 		m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
 		m_Calibrations.SetRadarHeight(reflectorheight);
@@ -410,6 +410,7 @@ int main()
         putText(sourceImage, textbuf, cv::Point(text_x-5, text_y-8), 0,1, Scalar(0,0,255),2,1);
 	}
 
+
 	namedWindow("raw image", WINDOW_NORMAL);
 	
     // Step two Calculate the GPS 2 World
@@ -420,7 +421,29 @@ int main()
 	//m_WholeCalibrations.PickRawGPSPoints4VectorPairs(wholeindex, mp_Gpslong, mp_Gpslat);
 
 	// gps convert to the world coordination
-	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick);
+
+	std::vector<double> gpsheight;
+	double p0_height = 190.561;
+	double p1_height = 190.709 - p0_height;
+	double p2_height = 190.646 - p0_height;
+	double p3_height = 190.935 - p0_height;
+	double p4_height = 190.943 - p0_height;
+	double p5_height = 191.433 - p0_height;
+	double p6_height = 191.413 - p0_height;
+	double p7_height = 191.774 - p0_height;
+	double p8_height = 191.757 - p0_height;
+
+	gpsheight.push_back(p1_height);
+	gpsheight.push_back(p2_height);
+	gpsheight.push_back(p3_height);
+	gpsheight.push_back(p4_height);
+	gpsheight.push_back(p5_height);
+	gpsheight.push_back(p6_height);
+	gpsheight.push_back(p7_height);
+	gpsheight.push_back(p8_height);
+
+
+	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick,gpsheight);
 
 
 	//m_WholeCalibrations.Gps2WorldCoord(m_WholeCalibrations.gps_longPick, m_WholeCalibrations.gps_latiPick);
@@ -516,7 +539,7 @@ int main()
 
 
 
-	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetRadarHeight(reflectorheight);
 	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
 
 #ifndef calibrateradar
@@ -532,14 +555,12 @@ int main()
 
 #ifdef readcalib
 	// 全是使用读取的参数写进去
-	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetRadarHeight(1.4);
 	m_Calibrations.SetRadarRT44(m_rt44);
 	m_Calibrations.SetCameraRT44(m_crt44);
 	m_Calibrations.SetCameraRT33(m_crt33);
 	m_Calibrations.SetCameraTMatrix(m_crt31);
 	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
-
-	
 
 #endif
 
@@ -560,7 +581,7 @@ int main()
 		// gps 转化成世界坐标之后的点
 
 		Mat m_gps2world = Mat::ones(4, 1, cv::DataType<double>::type);
-	
+		
 		//3D to 2D////////////////////////////
 		Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
 		Mat RT_;
@@ -597,7 +618,7 @@ int main()
 
 		// 反推12个点投影到pixel坐标,以下用新构造的点来计算
 		vector<Point3d> m_fantuiceshi;
-		Gps2WorldCoord4test(6378245,1.2, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
+		Gps2WorldCoord4test(6378245,reflectorheight, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
 
 		vector<Point3d>::iterator iter = m_fantuiceshi.begin();
 		for (; iter!= m_fantuiceshi.end(); iter++)
@@ -677,8 +698,8 @@ int main()
 		// 测试gps转换精度如何
 		GpsWorldCoord m_gpsworldt, m_gpstest;
 		longandlat m_longandlatt;
-		m_gpsworldt.X = -5.2;
-		m_gpsworldt.Y = 61.2;
+		m_gpsworldt.X = -1.6;
+		m_gpsworldt.Y = 26.4;
 		m_Calibrations.radarworld2Gps(m_gpsworldt, m_longandlatt);
 		printf("radar2GPs 转换：m_long'value [%2.7f,%2.7f] \n", m_longandlatt.longtitude, m_longandlatt.latitude);
 		m_Calibrations.Gps2radarworld(m_longandlatt, m_gpstest);
@@ -697,14 +718,14 @@ int main()
 		m_Calibrations.Distance312Pixel(worldDistance, radpixel);
 		std::string raders = "radarPoints";
 		sprintf(textbuf, "GPS[%3.6f,%3.6f]", m_longandlatt.longtitude, m_longandlatt.latitude);
-		putText(sourceImage, textbuf, Point((int)radpixel.x - 100, (int)radpixel.y - 30), 0, 1, Scalar(255, 200, 255), 2);
+		putText(sourceImage, textbuf, Point((int)radpixel.x - 100, (int)radpixel.y - 30), 0, 1, Scalar(255, 0, 0), 2);
 		cout << "给定雷达画图像:\t" << radpixel.x << "\t" << "Pixel_2D_Y:\t" << radpixel.y << endl;
-		circle(sourceImage, radpixel, 7, Scalar(0, 255, 0), -1, LINE_AA);
+		circle(sourceImage, radpixel, 7, Scalar(200, 255, 0), -1, LINE_AA);
 #endif
 
 	
 
-		//测试之前采的rtk  gps绝对坐标准不准
+		//测试之前采的rtk  gps绝对坐标准不准,雷达反投影
 		for (int i=1; i < mp_Gpslat.size()+1; i++)
 		{
 			GpsWorldCoord  m_gps;
@@ -727,10 +748,36 @@ int main()
 			m_Calibrations.Distance312Pixel(worldDistance, radpixell);
 			std::string raders = "radarPoints";
 			sprintf(textbuf, "GPS%d[%3.8f,%3.8f]",i, m_longandtemp.longtitude, m_longandtemp.latitude);
-			putText(sourceImage, textbuf, Point((int)radpixell.x - 100, (int)radpixell.y - 30), 0, 1, Scalar(0, 0, 0), 2);
+			//putText(sourceImage, textbuf, Point((int)radpixell.x - 100, (int)radpixell.y - 30), 0, 1, Scalar(0, 0, 0), 2);
 			cout << "GPS:\t"<< i <<"'s pixels:"<< radpixell.x << "\t" << radpixell.y << endl;
 			circle(sourceImage, radpixell, 7, Scalar(0, 255, 0), -1, LINE_AA);
 		}
+
+
+
+
+		//直接验证雷达2 pixel
+		
+			
+			Point3d radartemp;
+			radartemp.x = -3;
+			radartemp.y = 29.6;
+			radartemp.z = 0;
+
+			Point2d radpixell;
+			UcitCalibrate::WorldDistance worldDistance;
+			worldDistance.X = radartemp.x;
+			worldDistance.Y = radartemp.y;
+			worldDistance.Height = radartemp.z;
+			m_Calibrations.Distance312Pixel(worldDistance, radpixell);
+			std::string raders = "radarPoints";
+			//sprintf(textbuf, "GPS%d[%3.8f,%3.8f]", 0, m_longandtemp.longtitude, m_longandtemp.latitude);
+			//putText(sourceImage, textbuf, Point((int)radpixell.x - 100, (int)radpixell.y - 30), 0, 1, Scalar(0, 0, 0), 2);
+			cout << "GPS:\t" << 0 << "'s pixels:" << radpixell.x << "\t" << radpixell.y << endl;
+			circle(sourceImage, radpixell, 7, Scalar(0, 255, 0), -1, LINE_AA);
+		
+
+
 
 		
 
@@ -782,7 +829,7 @@ int main()
 		
 	
 
-	imwrite("save.jpg", sourceImage);
+	imwrite("../save.jpg", sourceImage);
 	imshow("raw image", sourceImage);
 	waitKey(0);
     system("PAUSE");

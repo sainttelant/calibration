@@ -688,7 +688,8 @@ namespace UcitCalibrate
 	}
 
 
-	void CalibrationTool::Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la)
+	void CalibrationTool::Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la ,\
+		std::vector<double>& m_gpsheights)
 	{
 		if (P1_la.size()!= P1_lo.size())
 		{
@@ -701,9 +702,9 @@ namespace UcitCalibrate
 		for (int i = 0; i < P1_la.size(); i++)
 		{
 			GpsWorldCoord GpsWorldtmp;
-			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(P1_la[i] * val)) * ((P1_lo[i] - m_originlongitude) / 360);
+			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
 			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
-			GpsWorldtmp.Distance = sqrt(GpsWorldtmp.X * GpsWorldtmp.X + GpsWorldtmp.Y * GpsWorldtmp.Y);
+			GpsWorldtmp.Distance = m_gpsheights[i];
 			printf("P[%d]::Gps world:x=%.10f Gps World y=%.10f Distance of world=%.10f \n", i + 1, GpsWorldtmp.X, GpsWorldtmp.Y, \
 			GpsWorldtmp.Distance);
 			m_gpsworlds.push_back(GpsWorldtmp);
@@ -773,13 +774,14 @@ namespace UcitCalibrate
 			GpsWorldCoord temp;
 			temp.X = 2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val)) * ((m_gpslongandlat.longtitude - m_originlongitude) / 360);
 			temp.Y = 2 * m_PI * m_earthR * ((m_gpslongandlat.latitude - m_originlatitude) / 360);
-			temp.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
-			
+			//temp.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
+			temp.Distance = m_gpsworldcoord.Distance;
 			cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
 			cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
 			Distance_W4.at<double>(0, 0) = temp.X;
 			Distance_W4.at<double>(1, 0) = temp.Y;
 			Distance_W4.at<double>(2, 0) = m_radarheight;
+			//Distance_W4.at<double>(2, 0) = temp.Distance;
 			Distance_W4.at<double>(3, 0) = 0;
 			radar_Dis = m_RadarRT.inv() * Distance_W4;
 			m_gpsworldcoord.X = -radar_Dis.at<double>(0, 0);
@@ -838,7 +840,7 @@ namespace UcitCalibrate
 			tmpPoint.x = m_gpsworlds[i].X;
 			tmpPoint.y = m_gpsworlds[i].Y;
 			// 预估测量高度为1.2f
-			tmpPoint.z = m_radarheight;
+			tmpPoint.z = m_gpsworlds[i].Distance;
 			m_worldBoxPoints.push_back(tmpPoint);
 		}
 	
@@ -1208,6 +1210,51 @@ namespace UcitCalibrate
 		Distances.Y = radar_Dis.at<double>(1, 0);
 		Distances.Height = radar_Dis.at<double>(2, 0);
 		cout << "Distance:X" << Distances.X << "\t" << "Distance:Y" << Distances.Y << endl;
+	}
+
+	void CalibrationTool::Gps2Pixel(GpsWorldCoord& m_gpscoord, cv::Point2d& pixels)
+	{
+		cv::Mat world_point = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+		world_point.at<double>(0, 0) = m_gpscoord.X;
+		world_point.at<double>(1, 0) = m_gpscoord.Y;
+		world_point.at<double>(2, 0) = m_gpscoord.Distance;
+		world_point.at<double>(3, 0) = 0;
+
+
+		cv::Mat imagetmp = cv::Mat::ones(3, 1, cv::DataType<double>::type);
+		if (m_cameraRTMatrix44.rows == 4)
+		{
+			cv::Mat dst;
+			int a = 3;
+			for (int i = 0; i < m_cameraRTMatrix44.rows; i++)
+			{
+				if (i != a) //第i行不是需要删除的
+				{
+					dst.push_back(m_cameraRTMatrix44.row(i)); //把message的第i行加到dst矩阵的后面
+				}
+			}
+			m_cameraRTMatrix44 = dst.clone();
+		}
+		imagetmp = m_cameraintrisic * m_cameraRTMatrix44 * world_point;
+		//    std::cout << "RTMatrix:" << m_cameraRTMatrix44 << std::endl;
+		//	std::cout<<"RT_"<<RT_<<std::endl;
+			//image_points = m_Calibrations.m_cameraintrisic * RT_ * RadarPoint;
+		cv::Mat D_Points = cv::Mat::ones(3, 1, cv::DataType<double>::type);
+		D_Points.at<double>(0, 0) = imagetmp.at<double>(0, 0) / imagetmp.at<double>(2, 0);
+		D_Points.at<double>(1, 0) = imagetmp.at<double>(1, 0) / imagetmp.at<double>(2, 0);
+
+
+		pixels.x = D_Points.at<double>(0, 0);
+		pixels.y = D_Points.at<double>(1, 0);
+
+		pixels.x = pixels.x;
+		pixels.y = pixels.y;
+
+		pixels.x = pixels.x;
+		pixels.y = pixels.y;
+
+
+
 	}
 
 	void CalibrationTool::Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels)
