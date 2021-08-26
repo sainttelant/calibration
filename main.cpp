@@ -753,7 +753,7 @@ int main()
 			UcitCalibrate::WorldDistance worldDistance;
 			worldDistance.X = i;
 			worldDistance.Y = 0;
-			worldDistance.Height = 0;
+			worldDistance.Height = reflectorheight;
 			if (i == -9)
 			{
 				m_Calibrations.Distance312Pixel(worldDistance, point1);
