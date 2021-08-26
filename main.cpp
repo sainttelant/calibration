@@ -519,10 +519,10 @@ int main()
 #ifdef calibrateradar
 	m_Calibrations.PickMeasureMentValue4RadarRT(pickPointindex, m_Measures);
 	// 计算雷达的rt矩阵
-	//cv::Mat RT = m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
-		//m_Calibrations.GetWorldBoxPoints());
-
 	cv::Mat RT = m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
+		m_Calibrations.GetWorldBoxPoints());
+
+	//cv::Mat RT = m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
 		Gpsworld4radarcalibrate);
 
 	for (int r = 0; r < RT.rows; r++)
