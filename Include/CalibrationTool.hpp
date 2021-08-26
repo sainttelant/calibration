@@ -109,7 +109,8 @@ namespace UcitCalibrate
 			std::map<int, cv::Point3d> &map_Measures,
 			longandlat &originpoll,
 			std::vector<double> &ghostdistort,
-			cv::Mat &camerainstrinic);
+			cv::Mat &camerainstrinic,
+			std::vector<double> &v_height);
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
 			cv::Mat &raderRT44, 

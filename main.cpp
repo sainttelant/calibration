@@ -302,7 +302,7 @@ int main()
 		reflectorheight,
 		raderheight,
 		m_Measures,
-		originallpoll, m_ghostdis, camrainst);
+		originallpoll, m_ghostdis, camrainst,gpsheight);
 
 		//处理measures
 		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
@@ -473,32 +473,19 @@ int main()
 
 
 #endif
-	
-#ifdef point_10
-	// 10号点高度
-	double gps0_height = 190.561;
-	double point1_height = 190.709 - gps0_height;
-	double point2_height = 190.646 - gps0_height;
-	double point3_height = 190.935 - gps0_height;
-	double point4_height = 190.943 - gps0_height;
-	double point5_height = 191.433 - gps0_height;
-	double point6_height = 191.413 - gps0_height;
-	double point7_height = 191.774 - gps0_height;
-	double point8_height = 191.757 - gps0_height;
-	gpsheight.push_back(point1_height);
-	gpsheight.push_back(point2_height);
-	/*gpsheight.push_back(point3_height);
-	gpsheight.push_back(point4_height);*/
-	gpsheight.push_back(point5_height);
-	gpsheight.push_back(point6_height);
-	/*gpsheight.push_back(point7_height);
-	gpsheight.push_back(point8_height);*/
-#endif
-	
+
+
+	// 最终选定的高程的点
+	std::vector<double> gpsheights;
+	for (int j = 0; j < pickPointindex.size(); j++)
+	{
+		gpsheights.push_back(gpsheight[pickPointindex[j] - 1]);
+	}
+
+
 
 	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick);
-	//m_Calibrations.Gps2worldcalib(m_Calibrations.gps_longPick,
-		//m_Calibrations.gps_latiPick, gpsheight);
+	//m_Calibrations.Gps2worldcalib(m_Calibrations.gps_longPick,m_Calibrations.gps_latiPick, gpsheights);
 	// 增加手持gps
 
 	
@@ -506,10 +493,8 @@ int main()
 	std::vector<cv::Point3d> Gpsworld4radarcalibrate;
 	m_Calibrations.Generategps2world(m_Calibrations.gps_longPick,
 		m_Calibrations.gps_latiPick,
-		gpsheight,
+		gpsheights,
 		Gpsworld4radarcalibrate);
-
-
 
 
 	m_Calibrations.SetWorldBoxPoints();

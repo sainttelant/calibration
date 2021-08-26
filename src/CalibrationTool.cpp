@@ -185,7 +185,8 @@ namespace UcitCalibrate
 		std::map<int, cv::Point3d> &map_Measures, 
 		longandlat &originpoll, 
 		std::vector<double>& ghostdistort,
-		cv::Mat &camerainstrinic)
+		cv::Mat &camerainstrinic,
+		std::vector<double> &v_height)
 	{
 		//读取xml文件中的参数值
 		TiXmlDocument* Document = new TiXmlDocument();
@@ -384,6 +385,24 @@ namespace UcitCalibrate
 				}
 			}
 
+			double originheight = 0;
+			if (NextElement->ValueTStr() == "gpsheight")
+			{
+				TiXmlElement* BoxElement = NextElement->FirstChildElement();
+				while (BoxElement != nullptr)
+				{
+					if (BoxElement->ValueTStr() == "gp0")
+					{
+						originheight = atof(BoxElement->GetText());
+						BoxElement = BoxElement->NextSiblingElement();
+					}
+					double tmpheight = atof(BoxElement->GetText());
+					v_height.push_back(tmpheight - originheight);
+					BoxElement = BoxElement->NextSiblingElement();
+				}
+			}
+
+
 			camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
 			if (NextElement->ValueTStr()=="camerainstrinic")
 			{
@@ -410,8 +429,11 @@ namespace UcitCalibrate
 				}
 			}
 
+		
 			NextElement = NextElement->NextSiblingElement();
 		}
+
+		
 		delete Document;
 		std::cout << "完成xml的读取" << std::endl;
 		return true;
