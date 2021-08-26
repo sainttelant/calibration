@@ -6,8 +6,8 @@
 using namespace UcitCalibrate;
 
 //#define readcalib
-//#define Readcalibratexml 
-#define  calibrateradar
+#define Readcalibratexml 
+//#define  calibrateradar
 
 #define writecalibratexml
 
@@ -257,8 +257,8 @@ int main()
 	// 准备的是图像上的像素点
 	// 创建输出参数文件，ios：：trunc含义是有文件先删除
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
-	std::string m_xmlpath = "input.xml";   //原来的标定
-	//std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
+	//std::string m_xmlpath = "input.xml";   //原来的标定
+	std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
 	std::string m_calixml = "calibration2.xml";
 
 	// 基于当前系统的当前日期/时间
@@ -305,13 +305,13 @@ int main()
 		//处理measures
 		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
 		std::map<int, Point3d>::iterator iter_end = m_Measures.end();
-		for (; iter_begin != iter_end; iter_begin++)
-		{
-			double ydist = iter_begin->second.y;
-			double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
-			iter_begin->second.y = ynew;
-			cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
-		}
+		/*	for (; iter_begin != iter_end; iter_begin++)
+			{
+				double ydist = iter_begin->second.y;
+				double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
+				iter_begin->second.y = ynew;
+				cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
+			}*/
 
 		m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
 		m_Calibrations.SetRadarHeight(reflectorheight);
@@ -447,7 +447,7 @@ int main()
 // 标定雷达的rt矩阵
 #ifdef calibrateradar
 	m_Calibrations.PickMeasureMentValue4RadarRT(pickPointindex, m_Measures);
-	// 计算雷达的rt矩阵
+	// 计算雷达的rt矩阵,在计算雷达矩阵的时候不要考虑手持角反的高度，只有切实有坡度的时候，加入到第二组参数入参当中
 	cv::Mat RT = m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
 		m_Calibrations.GetWorldBoxPoints());
 
