@@ -63,37 +63,63 @@ namespace UcitCalibrate
 
 	void CalibrationTool::RadarSpeedHeading(RadarSpeed& m_speed, RadarHeading& m_radarhead)
 	{
+
 		m_radarhead.speed_value = sqrt(pow(m_speed.vx, 2) + pow(m_speed.vy, 2));
-		double m_world2radar_theta = deg(acos(m_RadarRT.at<double>(0, 0)));
-		if (m_speed.vy!=0)
+		// 首先计算雷达速度投影到世界坐标系
+		cv::Mat speed_Radar = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+		speed_Radar.at<double>(0, 0) = m_speed.vx;
+		speed_Radar.at<double>(1, 0) = m_speed.vy;
+		speed_Radar.at<double>(2, 0) = m_speed.vz;
+		speed_Radar.at<double>(3, 0) = 0;
+		cv::Mat radarworld_speed = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+		// 得到了世界坐标系速度
+		radarworld_speed = m_RadarRT * speed_Radar;
+
+		double vx_project = radarworld_speed.at<double>(0, 0);
+		double vy_project = radarworld_speed.at<double>(1, 0);
+		double vz_project = radarworld_speed.at<double>(2, 0);
+		printf("radarworld_speed[%f,%f,%f] \n", vx_project, \
+		vy_project,
+		vz_project
+		);
+
+		if (vx_project!=0)
 		{
-			double theta = atan(-m_speed.vx / m_speed.vy);
-			
-			// 计算雷达速度的反正切
-			double m_radarrange = deg(theta);
-			std::cout << "雷达反正切" << m_radarrange << std::endl;
-			if (m_speed.vy > 0)
+			if (vx_project > 0 && vy_project > 0)
 			{
-				// 此时背向雷达运动
-				m_radarhead.theta = m_world2radar_theta + m_radarrange;
+				m_radarhead.direction = "NorthEast runs";
+				m_radarhead.theta = 90 - abs(deg(atan(vy_project) / (vx_project)));
 			}
-			else {
-				// 此时迎面驶来
-				m_radarhead.theta = 180 + m_world2radar_theta + m_radarrange;
+			if (vx_project < 0 && vy_project>0)
+			{
+				m_radarhead.direction = "NorthWest runs";
+				m_radarhead.theta = 270 + abs(deg(atan(vy_project) / (vx_project)));
+			}
+			if (vx_project < 0 && vy_project < 0)
+			{
+				m_radarhead.direction = "SouthWest runs";
+				m_radarhead.theta = 270 - abs(deg(atan(vy_project) / (vx_project)));
+			}
+			if (vx_project > 0 && vy_project < 0)
+			{
+				m_radarhead.direction = "SouthEast runs";
+				m_radarhead.theta = 90 + abs(deg(atan(vy_project) / (vx_project)));
 			}
 		}
-		else
+		else if (vx_project ==0)
 		{
-			if (-m_speed.vx>0)
+			if (vy_project>0)
 			{
-				m_radarhead.theta = 90 + m_world2radar_theta;
+				m_radarhead.direction = "North runs";
+				m_radarhead.theta = 0;
 			}
-			else
+			if (vy_project<0)
 			{
-				m_radarhead.theta = 270 + m_world2radar_theta;
+				m_radarhead.direction = "South runs";
+				m_radarhead.theta = 180;
 			}
 		}
-		
+	
 	}
 
 	double CalibrationTool::CalculateHeading(longandlat point1, longandlat point2)
@@ -123,7 +149,8 @@ namespace UcitCalibrate
 		std::map<int, cv::Point3d> &map_Measures, 
 		longandlat &originpoll, 
 		std::vector<double>& ghostdistort,
-		cv::Mat &camerainstrinic)
+		cv::Mat &camerainstrinic
+		)
 	{
 		//读取xml文件中的参数值
 		TiXmlDocument* Document = new TiXmlDocument();
@@ -321,7 +348,6 @@ namespace UcitCalibrate
 				
 				}
 			}
-
 			camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
 			if (NextElement->ValueTStr()=="camerainstrinic")
 			{
@@ -687,6 +713,58 @@ namespace UcitCalibrate
 		m_cameradiff.at<double>(4, 0) = df5;
 	}
 
+	void CalibrationTool::Generategps2world(std::vector<double>& P1_lo, 
+		std::vector<double>& P1_la,
+		std::vector<double>& height, \
+		std::vector<cv::Point3d>& Gpsworld4radar)
+	{
+		if (P1_la.size() != P1_lo.size())
+		{
+			printf("input the longitude and latitude can't be paired!!! return");
+			return;
+		}
+		
+		double val = m_PI / 180.0;
+
+		for (int i = 0; i < P1_la.size(); i++)
+		{
+			cv::Point3d GpsWorldtmp;
+			GpsWorldtmp.x = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
+			GpsWorldtmp.y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
+			GpsWorldtmp.z = height[i];
+			Gpsworld4radar.push_back(GpsWorldtmp);
+		}
+
+		printf("******************* \n");
+		
+	}
+
+	void CalibrationTool::Gps2worldcalib(std::vector<double>& P1_lo,
+		std::vector<double>& P1_la,
+		std::vector<double>& height)
+	{
+		if (P1_la.size() != P1_lo.size())
+		{
+			printf("input the longitude and latitude can't be paired!!! return");
+			return;
+		}
+		m_gpsworlds.clear();
+		double val = m_PI / 180.0;
+
+		for (int i = 0; i < P1_la.size(); i++)
+		{
+			GpsWorldCoord GpsWorldtmp;
+			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
+			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
+			GpsWorldtmp.Distance = height[i];
+			
+			m_gpsworlds.push_back(GpsWorldtmp);
+		}
+
+		printf("******************* \n");
+	}
+
+
 
 	void CalibrationTool::Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la)
 	{
@@ -701,7 +779,7 @@ namespace UcitCalibrate
 		for (int i = 0; i < P1_la.size(); i++)
 		{
 			GpsWorldCoord GpsWorldtmp;
-			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(P1_la[i] * val)) * ((P1_lo[i] - m_originlongitude) / 360);
+			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
 			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
 			GpsWorldtmp.Distance = sqrt(GpsWorldtmp.X * GpsWorldtmp.X + GpsWorldtmp.Y * GpsWorldtmp.Y);
 			printf("P[%d]::Gps world:x=%.10f Gps World y=%.10f Distance of world=%.10f \n", i + 1, GpsWorldtmp.X, GpsWorldtmp.Y, \
@@ -710,9 +788,7 @@ namespace UcitCalibrate
 		}
 
 		printf("******************* \n");
-		printf("******************* \n");
-		printf("******************* \n");
-		printf("******************* \n");
+
 	}
 
 	void CalibrationTool::WorldCoord2Gps(std::vector<longandlat>& m_longandlat, std::vector<GpsWorldCoord>& m_Gpsworld)
@@ -728,7 +804,7 @@ namespace UcitCalibrate
 		{
 			longandlat temp;
 			temp.latitude = (m_Gpsworld[i].Y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
-			temp.longtitude = (m_Gpsworld[i].X * 360) / (2 * m_PI * (m_earthR_Polar * cos(temp.latitude * val))) + m_originlongitude;
+			temp.longtitude = (m_Gpsworld[i].X * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val))) + m_originlongitude;
 			m_longandlat.push_back(temp);
 		}
 	}
@@ -738,7 +814,7 @@ namespace UcitCalibrate
 		cv::Mat RadarPoint = cv::Mat::ones(4, 1, cv::DataType<double>::type);
 		cv::Mat world_point = cv::Mat::ones(4, 1, cv::DataType<double>::type);
 		cv::Mat imagetmp = cv::Mat::ones(3, 1, cv::DataType<double>::type);
-		RadarPoint.at<double>(0, 0) = -m_gpsworldcoord.X;
+		RadarPoint.at<double>(0, 0) = m_gpsworldcoord.X;
 		RadarPoint.at<double>(1, 0) = m_gpsworldcoord.Y;
 		RadarPoint.at<double>(2, 0) = m_radarheight;
 		world_point = m_RadarRT * RadarPoint;
@@ -757,7 +833,7 @@ namespace UcitCalibrate
 		double worldY = world_point.at<double>(1, 0);
 		printf("worldXY[%.5f,%.5f] \n", worldX, worldY);
 		m_gpslongandlat.latitude = (worldY * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
-		m_gpslongandlat.longtitude = (worldX * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val))) + m_originlongitude;
+		m_gpslongandlat.longtitude = (worldX * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val))) + m_originlongitude;
 
 		
 		
@@ -771,7 +847,7 @@ namespace UcitCalibrate
 		double val = m_PI / 180.0;
 
 			GpsWorldCoord temp;
-			temp.X = 2 * m_PI * (m_earthR_Polar * cos(m_gpslongandlat.latitude * val)) * ((m_gpslongandlat.longtitude - m_originlongitude) / 360);
+			temp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((m_gpslongandlat.longtitude - m_originlongitude) / 360);
 			temp.Y = 2 * m_PI * m_earthR * ((m_gpslongandlat.latitude - m_originlatitude) / 360);
 			temp.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
 			
@@ -782,7 +858,7 @@ namespace UcitCalibrate
 			Distance_W4.at<double>(2, 0) = m_radarheight;
 			Distance_W4.at<double>(3, 0) = 0;
 			radar_Dis = m_RadarRT.inv() * Distance_W4;
-			m_gpsworldcoord.X = -radar_Dis.at<double>(0, 0);
+			m_gpsworldcoord.X = radar_Dis.at<double>(0, 0);
 			m_gpsworldcoord.Y = radar_Dis.at<double>(1, 0);
 			m_gpsworldcoord.Distance = radar_Dis.at<double>(2, 0);
 
@@ -1204,7 +1280,7 @@ namespace UcitCalibrate
 		cout << "radar inverse:" << m_RadarRT.inv() << endl;
 		radar_Dis = m_RadarRT.inv() * Distance_W4;
 		
-		Distances.X = -radar_Dis.at<double>(0, 0);
+		Distances.X = radar_Dis.at<double>(0, 0);
 		Distances.Y = radar_Dis.at<double>(1, 0);
 		Distances.Height = radar_Dis.at<double>(2, 0);
 		cout << "Distance:X" << Distances.X << "\t" << "Distance:Y" << Distances.Y << endl;
@@ -1215,7 +1291,7 @@ namespace UcitCalibrate
     cv::Mat RadarPoint = cv::Mat::ones(4, 1, cv::DataType<double>::type);
     cv::Mat world_point = cv::Mat::ones(4, 1, cv::DataType<double>::type);
     cv::Mat imagetmp = cv::Mat::ones(3, 1, cv::DataType<double>::type);
-    RadarPoint.at<double>(0, 0) = -Distances.X;
+    RadarPoint.at<double>(0, 0) = Distances.X;
     RadarPoint.at<double>(1, 0) = Distances.Y;
     RadarPoint.at<double>(2, 0) = Distances.Height;
     world_point = m_RadarRT * RadarPoint;

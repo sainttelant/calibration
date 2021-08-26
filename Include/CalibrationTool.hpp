@@ -43,12 +43,14 @@ namespace UcitCalibrate
 	{
 		double vx;
 		double vy;
+		double vz;
 	};
 
 	struct RadarHeading
 	{
 		double speed_value;
 		double theta;
+		std::string direction;
 	};   
 
 	// y =kx+b
@@ -57,6 +59,20 @@ namespace UcitCalibrate
 		double k;
 		double b;
 	};
+
+	enum Movingdirection
+	{
+		North,
+		East,
+		South,
+		West,
+		NorthEast,
+		SouthEast,
+		SorhtWest,
+		NorthWest,
+		Unkown
+	};
+
 
 
 	class CalibrationTool
@@ -76,7 +92,9 @@ namespace UcitCalibrate
 			int yMin;
 			int xMax;
 			int yMax;
-		};
+		};  
+
+
 		
 		bool ReadParaXml(std::string m_strXmlPath, std::vector<BoxSize>& vecNode);
 
@@ -91,7 +109,8 @@ namespace UcitCalibrate
 			std::map<int, cv::Point3d> &map_Measures,
 			longandlat &originpoll,
 			std::vector<double> &ghostdistort,
-			cv::Mat &camerainstrinic);
+			cv::Mat &camerainstrinic
+			);
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
 			cv::Mat &raderRT44, 
@@ -105,6 +124,15 @@ namespace UcitCalibrate
 			double &m_radarinstallheight
 			);
 
+		void Generategps2world(std::vector<double>& P1_lo, \
+			std::vector<double>& P1_la, \
+			std::vector<double>& height, \
+			std::vector<cv::Point3d> &Gpsworld4radar);
+
+		void Gps2worldcalib(std::vector<double>& P1_lo, \
+			std::vector<double>& P1_la, \
+			std::vector<double>& height);
+		// gps坐标转世界坐标系，不计算高度的，存到calibratetool 成员里面
 		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
 		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 
@@ -137,7 +165,10 @@ namespace UcitCalibrate
 
 		// 雷达坐标系向东（x轴）为正，向北为（Y轴）正，z向上
 		// 世界坐标系与雷达坐标系相同，存在一个偏转角，demo大概为60°
-		void RadarSpeedHeading(RadarSpeed &m_speed, RadarHeading &m_radarhead);
+		void RadarSpeedHeading(RadarSpeed &m_speed, RadarHeading &m_radarhead); 
+
+		//void RadarHeadings(RadarSpeed& m_speed, RadarHeading& m_radarhead);
+
 		void SetRadarHeight(double radar_height);
 		void SetCameraInstrinic(double fx, double fy, double cx, double cy);
 		void SetCameraDiff(double df1, double df2, double df3, double df4, double df5);

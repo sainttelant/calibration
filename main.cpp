@@ -6,8 +6,8 @@
 using namespace UcitCalibrate;
 
 //#define readcalib
-#define Readcalibratexml 
-//#define  calibrateradar
+//#define Readcalibratexml 
+#define  calibrateradar
 
 #define writecalibratexml
 
@@ -35,7 +35,7 @@ void Gps2WorldCoord4test(double earthR,double handleheight, \
 	for (int i = 1; i < P1_la.size()+1; i++)
 	{
 		Point3d temp3d;
-		temp3d.x = 2 * CV_PI * (earthR * cos(P1_la[i] * val)) * ((P1_lo[i] - m_longandlat.longtitude) / 360);
+		temp3d.x = 2 * CV_PI * (earthR * cos(m_longandlat.latitude * val)) * ((P1_lo[i] - m_longandlat.longtitude) / 360);
 		temp3d.y = 2 * CV_PI * earthR * ((P1_la[i] - m_longandlat.latitude) / 360);
 		temp3d.z = handleheight;
 		m_worldBoxPoints.push_back(temp3d);
@@ -257,8 +257,8 @@ int main()
 	// 准备的是图像上的像素点
 	// 创建输出参数文件，ios：：trunc含义是有文件先删除
 	ofstream outfile("CalibrateLog.txt", ios::trunc);
-	//std::string m_xmlpath = "input.xml";   //原来的标定
-	std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
+	std::string m_xmlpath = "input.xml";   //原来的标定
+	//std::string m_xmlpath = "input0616.xml"; //最近4个点不使用
 	std::string m_calixml = "calibration2.xml";
 
 	// 基于当前系统的当前日期/时间
@@ -308,10 +308,9 @@ int main()
 		for (; iter_begin != iter_end; iter_begin++)
 		{
 			double ydist = iter_begin->second.y;
-			double ynew = sqrt(ydist * ydist - pow(6 - 1.2, 2));
+			double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
 			iter_begin->second.y = ynew;
 			cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
-
 		}
 
 		m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
@@ -516,7 +515,7 @@ int main()
 
 
 
-	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetRadarHeight(reflectorheight);
 	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
 
 #ifndef calibrateradar
@@ -532,7 +531,7 @@ int main()
 
 #ifdef readcalib
 	// 全是使用读取的参数写进去
-	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetRadarHeight(reflectorheight);
 	m_Calibrations.SetRadarRT44(m_rt44);
 	m_Calibrations.SetCameraRT44(m_crt44);
 	m_Calibrations.SetCameraRT33(m_crt33);
@@ -597,7 +596,7 @@ int main()
 
 		// 反推12个点投影到pixel坐标,以下用新构造的点来计算
 		vector<Point3d> m_fantuiceshi;
-		Gps2WorldCoord4test(6378245,1.2, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
+		Gps2WorldCoord4test(6378245,reflectorheight, originallpoll,mp_Gpslong,mp_Gpslat,m_fantuiceshi);
 
 		vector<Point3d>::iterator iter = m_fantuiceshi.begin();
 		for (; iter!= m_fantuiceshi.end(); iter++)
@@ -754,7 +753,7 @@ int main()
 			UcitCalibrate::WorldDistance worldDistance;
 			worldDistance.X = i;
 			worldDistance.Y = 0;
-			worldDistance.Height = 1.2;
+			worldDistance.Height = 0;
 			if (i == -9)
 			{
 				m_Calibrations.Distance312Pixel(worldDistance, point1);
