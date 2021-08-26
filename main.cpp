@@ -38,7 +38,7 @@ void Gps2WorldCoord4test(double earthR,double handleheight, \
 	for (int i = 1; i < P1_la.size()+1; i++)
 	{
 		Point3d temp3d;
-		temp3d.x = 2 * CV_PI * (earthR * cos(P1_la[i] * val)) * ((P1_lo[i] - m_longandlat.longtitude) / 360);
+		temp3d.x = 2 * CV_PI * (earthR * cos(m_longandlat.latitude * val)) * ((P1_lo[i] - m_longandlat.longtitude) / 360);
 		temp3d.y = 2 * CV_PI * earthR * ((P1_la[i] - m_longandlat.latitude) / 360);
 		temp3d.z = handleheight;
 		m_worldBoxPoints.push_back(temp3d);
@@ -605,7 +605,7 @@ int main()
 
 #ifdef readcalib
 	// 全是使用读取的参数写进去
-	m_Calibrations.SetRadarHeight(1.2);
+	m_Calibrations.SetRadarHeight(reflectorheight);
 	m_Calibrations.SetRadarRT44(m_rt44);
 	m_Calibrations.SetCameraRT44(m_crt44);
 	m_Calibrations.SetCameraRT33(m_crt33);
@@ -865,7 +865,7 @@ int main()
 			UcitCalibrate::WorldDistance worldDistance;
 			worldDistance.X = i;
 			worldDistance.Y = 0;
-			worldDistance.Height = 1.2;
+			worldDistance.Height = reflectorheight;
 			if (i == -9)
 			{
 				m_Calibrations.Distance312Pixel(worldDistance, point1);
