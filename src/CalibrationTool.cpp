@@ -839,9 +839,9 @@ namespace UcitCalibrate
 			GpsWorldCoord GpsWorldtmp;
 			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
 			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
-			GpsWorldtmp.Distance = sqrt(GpsWorldtmp.X * GpsWorldtmp.X + GpsWorldtmp.Y * GpsWorldtmp.Y);
+			/*GpsWorldtmp.Distance = sqrt(GpsWorldtmp.X * GpsWorldtmp.X + GpsWorldtmp.Y * GpsWorldtmp.Y);
 			printf("P[%d]::Gps world:x=%.10f Gps World y=%.10f Distance of world=%.10f \n", i + 1, GpsWorldtmp.X, GpsWorldtmp.Y, \
-			GpsWorldtmp.Distance);
+			GpsWorldtmp.Distance);*/
 			m_gpsworlds.push_back(GpsWorldtmp);
 		}
 
