@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF=8" standalone="yes"?>
+<calibration>  
+ 
+ <handreflectorHeight>
+            <meters>1.2</meters>
+ </handreflectorHeight>
+
+ <installraderheight>
+            <meters>6.6</meters>
+ </installraderheight>
+
+
+ <originpoll>
+	    <lng>106.82658390</lng>
+	    <lat>29.67994000</lat>
+</originpoll>
+
+ <radarmeasure>
+	     <horizontalDis>2.8</horizontalDis>
+	     <verticalDis>21.6</verticalDis>
+
+	     <horizontalDis>0.2</horizontalDis>
+	     <verticalDis>21.6</verticalDis>
+
+	     <horizontalDis>-3.8</horizontalDis>
+	     <verticalDis>20</verticalDis>
+
+	     <horizontalDis>-6.4</horizontalDis>
+	     <verticalDis>20</verticalDis>
+
+	     <horizontalDis>-9.6</horizontalDis>
+	     <verticalDis>20</verticalDis>
+
+	     <horizontalDis>-8</horizontalDis>
+	     <verticalDis>23.2</verticalDis>
+
+            <horizontalDis>-5</horizontalDis>
+	     <verticalDis>23.2</verticalDis>
+
+	     <horizontalDis>-4</horizontalDis>
+	     <verticalDis>23.2</verticalDis>
+
+	     <horizontalDis>-0.2</horizontalDis>
+	     <verticalDis>24.8</verticalDis>
+
+	     <horizontalDis>-0.4</horizontalDis>
+	     <verticalDis>29.6</verticalDis>	
+
+	     <horizontalDis>-3.8</horizontalDis>
+	     <verticalDis>29.6</verticalDis>
+
+		<horizontalDis>-1.2</horizontalDis>
+	     <verticalDis>34.4</verticalDis>
+	     <horizontalDis>-7</horizontalDis>
+	     <verticalDis>32.8</verticalDis>
+	     <horizontalDis>-7.6</horizontalDis>
+	     <verticalDis>37.6</verticalDis>				  		     <horizontalDis>-3.2</horizontalDis>
+	     <verticalDis>39.2</verticalDis>
+		<horizontalDis>-4</horizontalDis>
+	     <verticalDis>45.6</verticalDis>				  			<horizontalDis>-9</horizontalDis>
+	     <verticalDis>44</verticalDis>
+
+
+		
+	   <horizontalDis>-8</horizontalDis>
+	     <verticalDis>31.2</verticalDis>				  		     <horizontalDis>-8.8</horizontalDis>
+	     <verticalDis>37.6</verticalDis>
+		<horizontalDis>-3</horizontalDis>
+	     <verticalDis>39.2</verticalDis>				  			<horizontalDis>-2</horizontalDis>
+	     <verticalDis>31.2</verticalDis>
+
+		
+
+		
+ </radarmeasure>
+ 
+ <pickpoint>
+		<index>11</index>
+           
+		<index>17</index>
+           	<index>18</index>
+		<index>19</index>
+             <index>20</index>		
+             	
+     	      
+</pickpoint>
+<pixelcoord>    
+
+     <xcoord>602.0</xcoord>
+     <ycoord>1368.0</ycoord>
+
+     <xcoord>917.0</xcoord>
+     <ycoord>1394.0</ycoord>
+
+     <xcoord>1487.0</xcoord>
+     <ycoord>1396.0</ycoord>
+
+     <xcoord>1805.0</xcoord>
+     <ycoord>1382.0</ycoord>
+
+     <xcoord>2174.0</xcoord>
+     <ycoord>1347.0</ycoord>
+     <xcoord>1860.0</xcoord>
+     <ycoord>1224.0</ycoord>
+     <xcoord>1524.0</xcoord>
+     <ycoord>1231.0</ycoord>
+     <xcoord>1269.0</xcoord>
+     <ycoord>1238.0</ycoord>
+
+     <xcoord>966.0</xcoord>
+     <ycoord>1236.0</ycoord>
+     <xcoord>1005.0</xcoord>
+     <ycoord>1084.0</ycoord>
+     <xcoord>1317.0</xcoord>
+     <ycoord>1078.0</ycoord>
+
+     
+     <xcoord>1060</xcoord>
+     <ycoord>970.0</ycoord>
+     <xcoord>1547.0</xcoord>
+     <ycoord>949.0</ycoord>
+     <xcoord>1549.0</xcoord>
+     <ycoord>852.0</ycoord>
+
+	
+     <xcoord>1185</xcoord>
+     <ycoord>860.0</ycoord>
+     <xcoord>1205.0</xcoord>
+     <ycoord>772.0</ycoord>
+     <xcoord>1524.0</xcoord>
+     <ycoord>763.0</ycoord>
+
+	
+     <xcoord>1684</xcoord>
+     <ycoord>1000.0</ycoord>
+     <xcoord>1614.0</xcoord>
+     <ycoord>847.0</ycoord>
+     <xcoord>1175.0</xcoord>
+     <ycoord>866.0</ycoord>
+
+     <xcoord>1135.0</xcoord>
+     <ycoord>1027.0</ycoord>
+
+
+
+
+
+
+		
+</pixelcoord>
+<gps>
+<lon>106.82637701</lon>
+<lon>106.82638865</lon>
+<lon>106.826340523</lon>
+<lon>106.82641441</lon>
+<lon>106.82642539</lon>
+<lon>106.82638415</lon>
+<lon>106.82636794</lon>
+<lon>106.82635952</lon>
+<lon>106.82634857</lon>
+<lon>106.82630400</lon>
+<lon>106.82631603</lon>
+
+<lon>106.82625998</lon>
+<lon>106.82628173</lon>
+<lon>106.82624046</lon>
+<lon>106.82621407</lon>
+<lon>106.82615579</lon>
+<lon>106.82618132</lon>
+
+
+<lon>106.82630814</lon>
+<lon>106.82624268</lon>
+<lon>106.82621636</lon>
+<lon>106.82628768</lon>
+
+
+
+
+
+<lan>29.67997801</lan>
+<lan>29.679999773</lan>
+<lan>29.68003246</lan>
+<lan>29.68005292</lan>
+<lan>29.68008098</lan>
+<lan>29.68007941</lan>
+<lan>29.68005442</lan>
+<lan>29.68003579</lan>
+<lan>29.68001423</lan>
+<lan>29.68003258</lan>
+<lan>29.68005922</lan>
+
+<lan>29.68005337</lan>
+<lan>29.68010147</lan>
+<lan>29.68012349</lan>
+<lan>29.68008603</lan>
+<lan>29.68011216</lan>
+<lan>29.68015087</lan>
+
+<lan>29.68010375</lan>
+<lan>29.68013129</lan>
+<lan>29.68008345</lan>
+<lan>29.68005141</lan>
+
+
+
+
+</gps>
+<distort>
+	<value0>-0.72259199</value0>
+	<value1>1.15911159</value1>
+	<value2>-0.00480677</value2>
+	<value3>0.0013566</value3>
+	<value4>-1.18000297</value4>
+</distort>
+
+<gpsheight>
+	<gp0>200.500</gp0>
+	<gp>200.591</gp>
+	<gp>200.574</gp>
+	<gp>200.476</gp>
+	<gp>200.394</gp>
+	<gp>200.305</gp>
+	<gp>200.478</gp>
+	<gp>200.576</gp>
+	<gp>200.564</gp>
+
+	<gp>200.591</gp>
+	<gp>200.902</gp>
+	<gp>200.935</gp>
+	<gp>201.253</gp>
+	<gp>201.403</gp>
+	<gp>201.906</gp>
+	<gp>201.750</gp>
+	<gp>202.194</gp>
+
+	<gp>202.359</gp>
+	<gp>201.191</gp>
+	<gp>201.947</gp>
+	<gp>201.755</gp>
+	<gp>201.089</gp>
+
+
+
+</gpsheight>
+
+
+<camerainstrinic>
+	<fx>2890.47</fx>
+	<fy>2889.710</fy>
+	<cx>1310.13587</cx>
+	<cy>783</cy>
+</camerainstrinic>
+
+</calibration>

@@ -510,9 +510,6 @@ int main()
 	vector<Point3d> srcPoints;
 
 
-	
-
-
 
 
 // 标定雷达的rt矩阵
