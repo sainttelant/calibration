@@ -931,7 +931,7 @@ namespace UcitCalibrate
 			UcitCalibrate::WorldDistance worldDistance;
 			worldDistance.X = i;
 			worldDistance.Y = 0;
-			worldDistance.Height = 1.2;
+			worldDistance.Height = m_radarheight;
 			if (i == -99)
 			{
 				Distance312Pixel(worldDistance, point1);

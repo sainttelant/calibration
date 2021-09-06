@@ -2,7 +2,7 @@
 <calibration>  
  
  <handreflectorHeight>
-            <meters>1.8</meters>
+            <meters>1.3</meters>
  </handreflectorHeight>
 
  <installraderheight>
@@ -75,18 +75,16 @@
  </radarmeasure>
  
  <pickpoint>
-		<index>11</index>
-           	<index>12</index>
-           	<index>13</index>
+		
+           	<index>11</index>
+		<index>12</index>
+
+             <index>13</index>
 		<index>14</index>
              <index>15</index>	
 		<index>16</index>
 		<index>17</index>
-           	<index>18</index>
-		<index>19</index>
-             <index>20</index>		
-             <index>21</index>	
-     	      
+           		     	      
 </pickpoint>
 <pixelcoord>    
 
