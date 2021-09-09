@@ -810,7 +810,7 @@ int main()
 		circle(sourceImage, radpixel, 7, Scalar(0, 255, 0), -1, LINE_AA);
 #endif
 
-		// 雷达反投影
+		// 雷达反投影,应该也要先乘以雷达的逆矩阵
 		//  雷达坐标系返回的点是左正右负, 反投影雷达要加高度z，记住
 		std::vector<Point2d> radarprojectpixle;
 		for (;iter_begin!= iter_end;iter_begin++)
@@ -820,17 +820,17 @@ int main()
 			radartmp.y = iter_begin->second.y;
 			radartmp.z = iter_begin->second.z;
 			Point2d radpixe;
-			UcitCalibrate::WorldDistance worldDistanc;
-			worldDistanc.X = radartmp.x;
-			worldDistanc.Y = radartmp.y;
-			worldDistanc.Height = radartmp.z;
-			m_Calibrations.Distance312Pixel(worldDistanc, radpixe);
-			/*std::string raders = "radarPoints";
-			putText(sourceImage, raders, Point((int)radpixe.x - 100, (int)radpixe.y - 30), 0, 1, Scalar(0, 0, 0), 2);*/
-			cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 100), -1, LINE_8);
-			radarprojectpixle.push_back(radpixe);
+
+			// 雷达的world 不能直接
+			//UcitCalibrate::WorldDistance radarworld;
+			/*		m_Calibrations.Distance312Pixel(worldDistanc, radpixe);
+					std::string raders = "radarPoints";
+					putText(sourceImage, raders, Point((int)radpixe.x - 100, (int)radpixe.y - 30), 0, 1, Scalar(0, 0, 0), 2);
+			cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 100), -1, LINE_8); */
+		/*	radarprojectpixle.push_back(radpixe);*/
+
 			longandlat gpsresult;
-			GpsWorldCoord radar_input;
+			GpsWorldCoord radar_input, radarworld;
 			radar_input.X = radartmp.x;
 			radar_input.Y = radartmp.y;
 			// input distance 有可能要修改
@@ -840,7 +840,20 @@ int main()
 			printf("GPS:[%3.8f,%3.8f] \n", gpsresult.longtitude, gpsresult.latitude);
 			printf("GPS:[%3.8f,%3.8f] \n", gpsresult.longtitude, gpsresult.latitude);
 			printf("GPS:[%3.8f,%3.8f] \n", gpsresult.longtitude, gpsresult.latitude);
+
+			m_Calibrations.Gps2radarworld(gpsresult, radarworld);
+
+			UcitCalibrate::WorldDistance radardistance;
+			radardistance.X = radarworld.X;
+			radardistance.Y = radarworld.Y;
+			radardistance.Height = radarworld.Distance;
+
+			m_Calibrations.Distance312Pixel(radardistance, radpixe);
+			cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 100), -1, LINE_8); 
+			radarprojectpixle.push_back(radpixe);
+
 		}
+
 
 		for (int i = 0; i < boxPoints.size(); i++)
 		{
@@ -877,7 +890,6 @@ int main()
 			Point3d radartemp;
 			radartemp.x = m_gps.X;
 			radartemp.y = m_gps.Y;
-			// 这里应该1.2m高度
 			radartemp.z = m_gps.Distance;
 			
 			Point2d radpixell;
