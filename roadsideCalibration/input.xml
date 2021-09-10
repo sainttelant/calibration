@@ -2,7 +2,7 @@
 <calibration>  
  
  <handreflectorHeight>
-            <meters>1.8</meters>
+            <meters>2</meters>
  </handreflectorHeight>
 
  <installraderheight>
@@ -11,8 +11,8 @@
 
 
  <originpoll>
-	    <lng>106.82657600</lng>
-	    <lat>29.67994900</lat>
+	    <lng>106.82658390</lng>
+	    <lat>29.67994000</lat>
 </originpoll>
 
  <radarmeasure>
@@ -77,8 +77,12 @@
  <pickpoint>
 		<index>6</index>
 		<index>7</index>
+		<index>8</index>
+		<index>10</index>
+		
 		<index>9</index>
-           	<index>11</index>
+
+		<index>11</index>
 		<index>16</index>
 		<index>17</index>
 		<index>18</index>

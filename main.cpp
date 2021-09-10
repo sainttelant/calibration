@@ -24,6 +24,59 @@ using namespace UcitCalibrate;
 
 #define point_10
 
+enum pixelDirection
+{
+	topleft = 1,
+	topright,
+	bottomleft,
+	bottomright,
+	Nonbias
+};
+
+struct dircs
+{
+	pixelDirection e_dirs;
+	std::string m_drirs;
+};
+
+dircs judgedirection(Point2d& srcpoint, Point2d& basepoint, double threashold)
+{
+	dircs ret{Nonbias,"Nonbiase"};
+	double xx = srcpoint.x - basepoint.x;
+	double yy = srcpoint.y - basepoint.y;
+
+	double offset = std::max(abs(xx), abs(yy));
+	if (offset > threashold)
+	{
+		if (xx < 0 && yy < 0)
+		{
+			ret.e_dirs = topleft;
+			ret.m_drirs = "topleft";
+		}
+		if (xx > 0 && yy < 0)
+		{
+			ret.e_dirs = topright;
+			ret.m_drirs = "topright";
+		}
+		if (xx > 0 && yy > 0)
+		{
+			ret.e_dirs = bottomright;
+			ret.m_drirs = "bottomright";
+		}
+		if (xx < 0 && yy>0)
+		{
+			ret.e_dirs = bottomleft;
+			ret.m_drirs = "bottomleft";
+		}
+	}
+	else
+	{
+		return ret;
+	}
+	
+	return ret;
+}
+
 
 typedef std::pair<string, double> PAIR;
 struct cmpsort {
@@ -309,6 +362,10 @@ int main()
 		double gpsdistance;
 	};
 
+	
+
+
+
 	vector<meandistance> error_means;
 
 	std::map<int, Point2d> mp_images;
@@ -427,6 +484,8 @@ int main()
 
 	// Step one Loading image
 	Mat sourceImage = cv::imread("1.bmp");
+
+	Mat xiezitu(cv::Size(800, 1440),CV_8UC3);
     // 写字
     
     char textbuf[256];
@@ -821,14 +880,6 @@ int main()
 			radartmp.z = iter_begin->second.z;
 			Point2d radpixe;
 
-			// 雷达的world 不能直接
-			//UcitCalibrate::WorldDistance radarworld;
-			/*		m_Calibrations.Distance312Pixel(worldDistanc, radpixe);
-					std::string raders = "radarPoints";
-					putText(sourceImage, raders, Point((int)radpixe.x - 100, (int)radpixe.y - 30), 0, 1, Scalar(0, 0, 0), 2);
-			cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 100), -1, LINE_8); */
-		/*	radarprojectpixle.push_back(radpixe);*/
-
 			longandlat gpsresult;
 			GpsWorldCoord radar_input, radarworld;
 			radar_input.X = radartmp.x;
@@ -854,14 +905,27 @@ int main()
 
 		}
 
-
+		char dayindir[256];
+		char prezifu[50];
+		//计算与真值的偏差
 		for (int i = 0; i < boxPoints.size(); i++)
 		{
+			dircs m_dirs = judgedirection(radarprojectpixle[i], boxPoints[i], 20);
 			recorddistance.radardistance = sqrt(pow((radarprojectpixle[i].x - boxPoints[i].x), 2) + pow((radarprojectpixle[i].y - boxPoints[i].y), 2));
-
 			error_means[i].radardistance = recorddistance.radardistance;
 			printf("distance radarproject[%d]:%f \n",i, recorddistance.radardistance);
+			strcpy(dayindir, m_dirs.m_drirs.c_str());
+			int textnum = sizeof(m_dirs.m_drirs);
+			sprintf(prezifu, "for Point:%d", i+1);
+			//strcpy(dayindir+textnum, prezifu);
+			strcat(dayindir, "----->");
+			strcat(dayindir, prezifu);
+			cv::putText(xiezitu, dayindir, Point(100, 100+i * 50), 0, 1, Scalar(255, 0, 0), 3);
+
 		}
+		cv::namedWindow("debugoffset", 0);
+		cv::imshow("debugoffset", xiezitu);
+		cv::waitKey(0);
 		
 
 
@@ -963,10 +1027,6 @@ int main()
 
 
 		outfile.close();
-
-
-		
-
 
 #if 1
 		Point2d  m_Distancepixel;
