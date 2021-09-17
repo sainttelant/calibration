@@ -867,6 +867,17 @@ namespace UcitCalibrate
 		}
 	}
 
+	void CalibrationTool::CameraPixel2Gps(cv::Point2d m_pixels, longandlat& m_longandlat)
+	{
+		cv::Point3d m_worldtmp;
+		CameraPixel2World(m_pixels, m_worldtmp);
+		// 从world 转到GPS
+		double val = m_PI / 180.0;
+		m_longandlat.latitude = (m_worldtmp.y * 360) / (2 * m_PI * m_earthR) + m_originlatitude;
+		m_longandlat.longtitude = (m_worldtmp.x * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val))) + m_originlongitude;
+
+	}
+
 	void CalibrationTool::radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat)
 	{
 		cv::Mat RadarPoint = cv::Mat::ones(4, 1, cv::DataType<double>::type);
@@ -1240,7 +1251,7 @@ namespace UcitCalibrate
 		return measures_pick;
 	}
 
-	void CalibrationTool::CameraPixel2World(cv::Point2d m_pixels, cv::Point3d& m_world, cv::Mat rotate33)
+	void CalibrationTool::CameraPixel2World(cv::Point2d m_pixels, cv::Point3d& m_world)
 	{
 		double s;
 		/////////////////////2D to 3D///////////////////////
@@ -1249,21 +1260,21 @@ namespace UcitCalibrate
 		imagepixel.at<double>(1, 0) = m_pixels.y;
 
 		// 内参矩阵的逆乘以像素坐标变成相机坐标系
-		cv::Mat tempMat = rotate33.inv() * m_cameraintrisic.inv() * imagepixel;
-		cv::Mat tempMat2 = rotate33.inv() * m_cameraTMatrix;
+		cv::Mat tempMat = m_cameraRMatrix33.inv() * m_cameraintrisic.inv() * imagepixel;
+		cv::Mat tempMat2 = m_cameraRMatrix33.inv() * m_cameraTMatrix;
 		double tmp2 = tempMat2.at<double>(2,0);
 		double tmp = tempMat.at<double>(2, 0);
 
 		s = m_radarheight + tmp2;
 		s /= tmp;
-		cout << "s : " << s << endl;
+		//cout << "s : " << s << endl;
 
-		cv::Mat camera_cordinates = -rotate33.inv() * m_cameraTMatrix;
-		cv::Mat wcPoint = rotate33.inv() * (m_cameraintrisic.inv() * s * imagepixel - m_cameraTMatrix);
+		cv::Mat camera_cordinates = -m_cameraRMatrix33.inv() * m_cameraTMatrix;
+		cv::Mat wcPoint = m_cameraRMatrix33.inv() * (m_cameraintrisic.inv() * s * imagepixel - m_cameraTMatrix);
 		m_world.x = wcPoint.at<double>(0, 0);
 		m_world.y = wcPoint.at<double>(1, 0);
 		m_world.z = wcPoint.at<double>(2, 0);
-		cout << "Pixel2World :" << wcPoint << endl;
+		//cout << "Pixel2World :" << wcPoint << endl;
 	}
 
 	void CalibrationTool::CalibrateCamera(bool rasac, bool useRTK, std::vector<unsigned int> pickPoints)
@@ -1326,7 +1337,7 @@ namespace UcitCalibrate
 	{
 	
 		cv::Point3d tmp;
-		CameraPixel2World(pixels, tmp, m_cameraRMatrix33);
+		CameraPixel2World(pixels, tmp);
 		cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
 		Point3d Distance_world;
 		printf("tmp(%.3f,%.3f,%.3f)\n", tmp.x, tmp.y, tmp.z);

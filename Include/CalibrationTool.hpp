@@ -2,19 +2,12 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
+#include "GpsKmlGenerator.hpp"
 
-#include <iostream>
-#include <string>
-#include <ctype.h>
-#include <math.h>
-#include <fstream>
-#include <vector>
-#include <map>
-#include "tinystr.h"
-#include "tinyxml.h"
+
 
 using namespace cv;
-using namespace std;
+
 
 namespace UcitCalibrate
 {
@@ -33,11 +26,7 @@ namespace UcitCalibrate
 		double Height;
 	};
 
-	struct longandlat
-	{
-		double longtitude;
-		double latitude;
-	};
+	
 
 	struct RadarSpeed
 	{
@@ -137,7 +126,10 @@ namespace UcitCalibrate
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
 		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 
 		void Gps2radarworld(longandlat& m_gpslongandlat, GpsWorldCoord& m_gpsworldcoord);
-		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world, cv::Mat rotate33);
+		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world);
+		void CameraPixel2Gps(cv::Point2d m_pixels, longandlat& m_longandlat);
+
+
 
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系
 		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);
