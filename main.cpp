@@ -915,6 +915,7 @@ int main()
 		cv::namedWindow("debugoffset", 0);
 		cv::imshow("debugoffset", xiezitu);
 		cv::waitKey(0);
+		cv::destroyWindow("debugoffset");
 
 #endif
 
@@ -1100,11 +1101,6 @@ int main()
 		std::string m_filepath = "gps.KML";
 		GpsKmlGenerator::Instance().writegpskml(mp_inputs,3, pointsize,m_filepath);
 
-
-
-
-
-
 		for (int j=0; j<3;j++)
 		{
 			if (mp_inputs[j].v_lonandlat!=nullptr)
@@ -1122,15 +1118,6 @@ int main()
 		std::cout << "gps thing process done!!" << std::endl;
 
 #endif
-
-
-
-
-
-
-
-
-
 
 #if 1
 		Point2d  m_Distancepixel;
@@ -1171,6 +1158,7 @@ int main()
 	cv::imwrite("save.jpg", sourceImage);
 	cv::imshow("raw image", sourceImage);
 	cv::waitKey(0);
+	cv::destroyAllWindows();
 	outfile.close();
 	gpsfile.close();
     std::system("PAUSE");

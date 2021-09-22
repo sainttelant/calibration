@@ -86,6 +86,57 @@ int GpsKmlGenerator::writegpskml(inputgps* pinputs, int num_groups, int num_poin
 	href2->LinkEndChild(red);
 	icon2->LinkEndChild(href2);
 
+	//配置highlight 状态
+
+	TiXmlElement* highlightState = new TiXmlElement("Style");
+	highlightState->SetAttribute("id", "highlightState");
+	Docu->LinkEndChild(highlightState);
+	TiXmlElement* highlighticon = new TiXmlElement("IconStyle");
+	highlightState->LinkEndChild(highlighticon);
+	TiXmlElement* highscale = new TiXmlElement("scale");
+	highlighticon->LinkEndChild(highscale);
+	TiXmlText* valueshigh = new TiXmlText("1.2");
+	highscale->LinkEndChild(valueshigh);
+	TiXmlElement* iconhigh = new TiXmlElement("Icon");
+	highlighticon->LinkEndChild(iconhigh);
+
+	TiXmlElement* hrefhigh = new TiXmlElement("href");
+	TiXmlText* pink = new TiXmlText("http://maps.google.com/mapfiles/kml/pushpin/pink-pushpin.png");
+	hrefhigh->LinkEndChild(pink);
+	iconhigh->LinkEndChild(hrefhigh);
+
+	// 制作styleMap
+
+	TiXmlElement* greenMap = new TiXmlElement("StyleMap");
+	greenMap->SetAttribute("id", "greenMapstyle");
+	Docu->LinkEndChild(greenMap);
+	TiXmlElement* pairs = new TiXmlElement("Pair");
+	greenMap->LinkEndChild(pairs);
+	TiXmlElement* key = new TiXmlElement("key");
+	TiXmlText* keyvalue = new TiXmlText("normal");
+	key->LinkEndChild(keyvalue);
+	pairs->LinkEndChild(key);
+	TiXmlElement* greenMapstyleurl = new TiXmlElement("styleUrl");
+	TiXmlText* normalstyle = new TiXmlText("#xuewei_green_Style");
+	greenMapstyleurl->LinkEndChild(normalstyle);
+	pairs->LinkEndChild(greenMapstyleurl);
+
+	TiXmlElement* highpair = new TiXmlElement("Pair");
+	greenMap->LinkEndChild(highpair);
+	TiXmlElement* highkey = new TiXmlElement("key");
+	TiXmlText* hightkeyvalue = new TiXmlText("highlight");
+	highkey->LinkEndChild(hightkeyvalue);
+	highpair->LinkEndChild(highkey);
+	TiXmlElement* highkeystyleurl = new TiXmlElement("styleUrl");
+	TiXmlText* highlightstatusvalue = new TiXmlText("#highlightState");
+	highkeystyleurl->LinkEndChild(highlightstatusvalue);
+	highpair->LinkEndChild(highkeystyleurl);
+
+
+
+
+
+
 	//连上各种点 placement
 	// 读取 pininputs
 	for (int i=0; i<num_groups;i++)
@@ -101,16 +152,16 @@ int GpsKmlGenerator::writegpskml(inputgps* pinputs, int num_groups, int num_poin
 			switch (pinputs[i].m_type)
 			{
 			case 0:
-				sprintf(pointname, "rawgps:%d", j + 1);
-				choosestyles = "#xuewei_green_Style";
+				sprintf(pointname, "RG:%d", j + 1);
+				choosestyles = "#greenMapstyle";
 				break;
 			case 1:
-				sprintf(pointname, "pixel2gps:%d", j + 1);
-				choosestyles = "xuewei_blue_Style";
+				sprintf(pointname, "PG:%d", j + 1);
+				choosestyles = "#xuewei_blue_Style";
 				break;
 			case 2:
-				sprintf(pointname, "radar2gps:%d", j + 1);
-				choosestyles = "xuewei_Red_Style";
+				sprintf(pointname, "RaG:%d", j + 1);
+				choosestyles = "#xuewei_Red_Style";
 				break;
 			}
 			TiXmlText* pointnames = new TiXmlText(pointname);
