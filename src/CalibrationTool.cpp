@@ -89,22 +89,22 @@ namespace UcitCalibrate
 			if (vx_project > 0 && vy_project > 0)
 			{
 				m_radarhead.direction = "NorthEast runs";
-				m_radarhead.theta = 90 - abs(deg(atan(vy_project) / (vx_project)));
+				m_radarhead.theta = 90 - abs(deg(atan(vy_project/vx_project)));
 			}
 			if (vx_project < 0 && vy_project>0)
 			{
 				m_radarhead.direction = "NorthWest runs";
-				m_radarhead.theta = 270 + abs(deg(atan(vy_project) / (vx_project)));
+				m_radarhead.theta = 270 + abs(deg(atan(vy_project/vx_project)));
 			}
 			if (vx_project < 0 && vy_project < 0)
 			{
 				m_radarhead.direction = "SouthWest runs";
-				m_radarhead.theta = 270 - abs(deg(atan(vy_project) / (vx_project)));
+				m_radarhead.theta = 270 - abs(deg(atan(vy_project/vx_project)));
 			}
 			if (vx_project > 0 && vy_project < 0)
 			{
 				m_radarhead.direction = "SouthEast runs";
-				m_radarhead.theta = 90 + abs(deg(atan(vy_project) / (vx_project)));
+				m_radarhead.theta = 90 + abs(deg(atan(vy_project/vx_project)));
 			}
 		}
 		else if (vx_project ==0)
