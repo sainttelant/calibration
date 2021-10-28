@@ -186,7 +186,7 @@ namespace UcitCalibrate
 		longandlat &originpoll, 
 		std::vector<double>& ghostdistort,
 		cv::Mat &camerainstrinic,
-		std::vector<double> &v_height)
+		std::vector<double> &v_height,std::string &place)
 	{
 		//读取xml文件中的参数值
 		TiXmlDocument* Document = new TiXmlDocument();
@@ -202,6 +202,12 @@ namespace UcitCalibrate
 		
 		while (NextElement != NULL)		//判断有没有读完
 		{
+
+			if (NextElement->ValueTStr()=="place")
+			{
+					place = NextElement->GetText();
+			}
+
 			if (NextElement->ValueTStr()=="handreflectorHeight")
 			{
 				TiXmlElement* BoxElement = NextElement->FirstChildElement();
@@ -870,6 +876,7 @@ namespace UcitCalibrate
 	void CalibrationTool::CameraPixel2Gps(cv::Point2d m_pixels, longandlat& m_longandlat)
 	{
 		cv::Point3d m_worldtmp;
+
 		CameraPixel2World(m_pixels, m_worldtmp);
 		// 从world 转到GPS
 		double val = m_PI / 180.0;

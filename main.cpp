@@ -135,7 +135,8 @@ int writeXmlFile(cv::Mat *raderRT44,
 	cv::Mat *cameraDist,
 	cv::Mat *camerainstrinic,
 	double handheight,
-	double radarinstallheight)
+	double radarinstallheight,
+	std::string place)
 {
 	if (raderRT44==nullptr || cameraRT44==nullptr)
 	{
@@ -150,6 +151,11 @@ int writeXmlFile(cv::Mat *raderRT44,
 
 	TiXmlElement* RootElement = new TiXmlElement("CalibInfo");//根元素
 	writeDoc->LinkEndChild(RootElement);
+
+	TiXmlElement* placeElement = new TiXmlElement("place");
+	RootElement->LinkEndChild(placeElement);
+	TiXmlText* placetext = new TiXmlText(place.c_str());
+	placeElement->LinkEndChild(placetext);
 
 	// 雷达rt矩阵写入
 	TiXmlElement* RadElement = new TiXmlElement("radarRT44");
@@ -321,9 +327,8 @@ int writeXmlFile(cv::Mat *raderRT44,
 	heightrader->LinkEndChild(isntallvalues);
 
 
-		writeDoc->SaveFile("calibration2.xml");
+		writeDoc->SaveFile("calibration.xml");
 		delete writeDoc;
-
 		return 1;
 }
 
@@ -395,6 +400,7 @@ int main()
 	cv::Mat  cameradistort1,camrainst;
 	vector<double> m_ghostdis;
 	std::vector<double> gpsheight;
+	std::string calibrateplace = "";
 	// read from xml config
 
 #ifndef  readcalib
@@ -408,7 +414,9 @@ int main()
 		reflectorheight,
 		raderheight,
 		m_Measures,
-		originallpoll, m_ghostdis, camrainst,gpsheight);
+		originallpoll, m_ghostdis, camrainst,gpsheight,calibrateplace);
+
+		
 
 		//处理measures
 		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
@@ -724,14 +732,11 @@ int main()
 
 #endif
 
-#if 1
-	RadarSpeed m_radar;
-	RadarHeading m_radarr;
-	m_radar.vx = -3;
-	m_radar.vy = 0;
-	m_Calibrations.RadarSpeedHeading(m_radar, m_radarr);
 
-#endif
+
+	
+
+
 	
 	
 
@@ -758,14 +763,15 @@ int main()
 		poll_lat = originallpoll.latitude;
 		// generate xml files to store rt matrix
 #ifndef Readcalibratexml
+		
 		int flag = writeXmlFile(&RT, &RT_, &m_Calibrations.m_cameraRMatrix33, \
 			& m_Calibrations.m_cameraTMatrix,
-			poll_lon,poll_lat,&cameradistort,&camrainst,reflectorheight,raderheight);
+			poll_lon,poll_lat,&cameradistort,&camrainst,reflectorheight,raderheight,calibrateplace);
 #else
 		
 		int flag = writeXmlFile(&m_rt44, &RT_, &m_Calibrations.m_cameraRMatrix33, \
 			& m_Calibrations.m_cameraTMatrix, poll_lon, poll_lat, &cameradistort, &camrainst, \
-			reflectorheight, raderheight);
+			reflectorheight, raderheight,calibrateplace);
 #endif
 		
 #endif
@@ -774,7 +780,7 @@ int main()
 
 #if project2pixeltest
 		meandistance recorddistance{ 0,0,0 };
-		// 反推12个点投影到pixel坐标,以下用新构造的点来计算
+		// 反推12个点投影到pixel坐标,以下用新构造的点来计算,像素的值 红色
 		vector<Point3d> m_fantuiceshi;
 		Gps2WorldCoord4test(6378245, reflectorheight, originallpoll, mp_Gpslong, mp_Gpslat, m_fantuiceshi);
 
@@ -795,7 +801,7 @@ int main()
 			Point2d raderpixelPoints;
 			raderpixelPoints.x = D_Points.at<double>(0, 0);
 			raderpixelPoints.y = D_Points.at<double>(1, 0);
-			validPoints.push_back(raderpixelPoints);
+			validPoints.push_back(raderpixelPoints); 
 			std::string raders = "radarPoints";
 
 			cv::circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
@@ -897,9 +903,14 @@ int main()
 		char dayindir[256];
 		char prezifu[50];
 		//计算与真值的偏差
+		int Nonbiasnum = 0;
 		for (int i = 0; i < boxPoints.size(); i++)
 		{
 			dircs m_dirs = judgedirection(radarprojectpixle[i], boxPoints[i], 20);
+			if (strcmp(m_dirs.m_drirs.c_str(),"Nonbiase")!=0)
+			{
+				Nonbiasnum++;
+			}
 			recorddistance.radardistance = sqrt(pow((radarprojectpixle[i].x - boxPoints[i].x), 2) + pow((radarprojectpixle[i].y - boxPoints[i].y), 2));
 			error_means[i].radardistance = recorddistance.radardistance;
 			printf("distance radarproject[%d]:%f \n", i, recorddistance.radardistance);
@@ -910,7 +921,11 @@ int main()
 			strcat(dayindir, "----->");
 			strcat(dayindir, prezifu);
 			cv::putText(xiezitu, dayindir, Point(100, 100 + i * 50), 0, 1, Scalar(255, 0, 0), 3);
+		}
 
+		if ((float)Nonbiasnum/(float)boxPoints.size() > 0.1)
+		{
+			cv::putText(xiezitu, "Too much Nonbias points", Point(100,700), 0, 1.5, Scalar(255, 0, 0), 3);
 		}
 		cv::namedWindow("debugoffset", 0);
 		cv::imshow("debugoffset", xiezitu);
@@ -924,13 +939,27 @@ int main()
 
 		// 测试航向角,正北为X正，东为世界的Y正 ：假如往西南方向跑
 		RadarSpeed m_raderspeed;
-		m_raderspeed.vx = 4;
-		m_raderspeed.vy = -8;
+		m_raderspeed.vx = -0.001429;
+		m_raderspeed.vy = 0.001120;
 		m_raderspeed.vz = 0;
 		RadarHeading m_heads;
 		m_Calibrations.RadarSpeedHeading(m_raderspeed,m_heads);
 
-		
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading %s \n", m_heads.direction.c_str());
+		printf("heading V:%f \n", m_heads.speed_value);
+		printf("heading theta:%f \n", m_heads.theta);
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
 
 #if project2pixeltest
 		std::vector<Point2d> gpsprojects;
@@ -947,7 +976,6 @@ int main()
 			radartemp.x = m_gps.X;
 			radartemp.y = m_gps.Y;
 			radartemp.z = m_gps.Distance;
-			
 			Point2d radpixell;
 			UcitCalibrate::WorldDistance worldDistance;
 			worldDistance.X = radartemp.x;
@@ -1009,7 +1037,15 @@ int main()
 			stream << setw(10) << setfill(' ');
 			stream << name_score_vec[i].second;
 			std::string display =stream.str();
-			cv::putText(sourceImage, display, Point(50, 200+i*50), 0, 1.5, Scalar(100, 255, 0), 3);
+			if (name_score_vec[i].second > 100)
+			{
+				cv::putText(sourceImage, display, Point(50, 200 + i * 50), 0, 1.6, Scalar(0, 0, 255), 3);
+				cv::putText(sourceImage, "error exceeds requirement", Point(600, 200 + i * 50), 0, 1.5, Scalar(0, 0, 255), 3);
+			}
+			else
+			{
+				cv::putText(sourceImage, display, Point(50, 200 + i * 50), 0, 1.5, Scalar(100, 255, 0), 3);
+			}
 		}	
 #endif
 

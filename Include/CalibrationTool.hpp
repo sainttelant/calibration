@@ -99,7 +99,8 @@ namespace UcitCalibrate
 			longandlat &originpoll,
 			std::vector<double> &ghostdistort,
 			cv::Mat &camerainstrinic,
-			std::vector<double> &v_height);
+			std::vector<double> &v_height,
+			std::string &place);
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
 			cv::Mat &raderRT44, 
