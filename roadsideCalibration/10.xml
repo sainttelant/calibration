@@ -2,7 +2,7 @@
 <calibration>  
  
  <handreflectorHeight>
-            <meters>1.4</meters>
+            <meters>1.5</meters>
  </handreflectorHeight>
 
  <installraderheight>
@@ -12,7 +12,7 @@
 
  <originpoll>
 	    <lng>106.82906063</lng>
-	    <lat>29.68508914</lat>
+	    <lat>29.68509650</lat>
 </originpoll>
 
  <radarmeasure>
@@ -39,11 +39,21 @@
  </radarmeasure>
  
  <pickpoint>
-		<index>1</index>
-            <index>2</index>
-            	<index>5</index>
-            <index>6</index>
-            	
+            <index>1</index>
+		<index>2</index>	
+	
+		<index>5</index>
+		<index>6</index>	
+	
+		<index>3</index>
+		<index>4</index>	
+	
+		<index>7</index>
+		<index>8</index>	
+	
+
+			
+		            	
 	      
 </pickpoint>
 <pixelcoord>    
@@ -86,10 +96,6 @@
 <lan>29.68521807</lan>
 <lan>29.68525643</lan>
 <lan>29.6852419</lan>
-
-
-	
-		
 </gps>
 <distort>
 	<value0>-0.60016012</value0>
@@ -98,11 +104,25 @@
 	<value3>-0.00146187</value3>
 	<value4>-0.65938132</value4>
 </distort>
+
+<gpsheight>
+	<gp0>190.561</gp0>
+	<gp>190.709</gp>
+	<gp>190.646</gp>
+	<gp>190.935</gp>
+	<gp>190.943</gp>
+	<gp>191.433</gp>
+	<gp>191.413</gp>
+	<gp>191.774</gp>
+	<gp>191.757</gp>
+</gpsheight>
+
 <camerainstrinic>
 	<fx>2562.5455</fx>
 	<fy>2566.81406</fy>
-	<cx>1298.28733</cx>
+	<cx>1280.28733</cx>
 	<cy>709</cy>
 </camerainstrinic>
+
 
 </calibration>

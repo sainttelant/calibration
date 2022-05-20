@@ -2,19 +2,12 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
+#include "GpsKmlGenerator.hpp"
 
-#include <iostream>
-#include <string>
-#include <ctype.h>
-#include <math.h>
-#include <fstream>
-#include <vector>
-#include <map>
-#include "tinystr.h"
-#include "tinyxml.h"
+
 
 using namespace cv;
-using namespace std;
+
 
 namespace UcitCalibrate
 {
@@ -22,7 +15,7 @@ namespace UcitCalibrate
 	{
 		double X;
 		double Y;
-		// distacne ÓÐÊ±ºòÒ²´ú±í1.2m£¬×¢ÒâÇø·Ö
+		// distacne ï¿½ï¿½Ê±ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½1.2mï¿½ï¿½×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		double Distance;
 	};
 
@@ -33,22 +26,20 @@ namespace UcitCalibrate
 		double Height;
 	};
 
-	struct longandlat
-	{
-		double longtitude;
-		double latitude;
-	};
+	
 
 	struct RadarSpeed
 	{
 		double vx;
 		double vy;
+		double vz;
 	};
 
 	struct RadarHeading
 	{
 		double speed_value;
 		double theta;
+		std::string direction;
 	};   
 
 	// y =kx+b
@@ -57,6 +48,20 @@ namespace UcitCalibrate
 		double k;
 		double b;
 	};
+
+	enum Movingdirection
+	{
+		North,
+		East,
+		South,
+		West,
+		NorthEast,
+		SouthEast,
+		SorhtWest,
+		NorthWest,
+		Unkown
+	};
+
 
 
 	class CalibrationTool
@@ -76,7 +81,9 @@ namespace UcitCalibrate
 			int yMin;
 			int xMax;
 			int yMax;
-		};
+		};  
+
+
 		
 		bool ReadParaXml(std::string m_strXmlPath, std::vector<BoxSize>& vecNode);
 
@@ -91,7 +98,9 @@ namespace UcitCalibrate
 			std::map<int, cv::Point3d> &map_Measures,
 			longandlat &originpoll,
 			std::vector<double> &ghostdistort,
-			cv::Mat &camerainstrinic);
+			cv::Mat &camerainstrinic,
+			std::vector<double> &v_height,
+			std::string &place);
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
 			cv::Mat &raderRT44, 
@@ -105,13 +114,25 @@ namespace UcitCalibrate
 			double &m_radarinstallheight
 			);
 
-		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la, std::vector<double> &m_gpsheights);
+		void Generategps2world(std::vector<double>& P1_lo, \
+			std::vector<double>& P1_la, \
+			std::vector<double>& height, \
+			std::vector<cv::Point3d> &Gpsworld4radar);
+
+		void Gps2worldcalib(std::vector<double>& P1_lo, \
+			std::vector<double>& P1_la, \
+			std::vector<double>& height);
+		// gpsï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¶ÈµÄ£ï¿½ï¿½æµ½calibratetool ï¿½ï¿½Ô±ï¿½ï¿½ï¿½ï¿½
+		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);
 		void radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat); 
 		void Gps2radarworld(longandlat& m_gpslongandlat, GpsWorldCoord& m_gpsworldcoord);
-		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world, cv::Mat rotate33);
+		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world);
+		void CameraPixel2Gps(cv::Point2d m_pixels, longandlat& m_longandlat);
 
-		// pixel ÕÛËãµ½3*1µÄ¾àÀëÖµ, 1: camerapixel points 2£ºÊä³öx,y,zÖµ£¬¼ÆËãÏñËØµ½À×´ï×ø±êÏµ
+
+
+		// pixel ï¿½ï¿½ï¿½ãµ½3*1ï¿½Ä¾ï¿½ï¿½ï¿½Öµ, 1: camerapixel points 2ï¿½ï¿½ï¿½ï¿½ï¿½x,y,zÖµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½×´ï¿½ï¿½ï¿½ï¿½ï¿½Ïµ
 		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);
 		void Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels);
 
@@ -131,15 +152,18 @@ namespace UcitCalibrate
 		void SetPi(double pai);
 		double rad(double d);
 		double deg(double x);
-		// ¾­Î³¶ÈÖ®¼ä¾àÀë
+		// ï¿½ï¿½Î³ï¿½ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½
 		double GetDistance(longandlat point1, longandlat point2);
 
-		// ¼ÆËãº½Ïò½Ç,¸ù¾Ý¾­Î³¶È
+		// ï¿½ï¿½ï¿½ãº½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½Ý¾ï¿½Î³ï¿½ï¿½
 		double CalculateHeading(longandlat point1, longandlat point2);
 
-		// À×´ï×ø±êÏµÏò¶«£¨xÖá£©ÎªÕý£¬Ïò±±Îª£¨YÖá£©Õý£¬zÏòÉÏ
-		// ÊÀ½ç×ø±êÏµÓëÀ×´ï×ø±êÏµÏàÍ¬£¬´æÔÚÒ»¸öÆ«×ª½Ç£¬demo´ó¸ÅÎª60¡ã
-		void RadarSpeedHeading(RadarSpeed &m_speed, RadarHeading &m_radarhead);
+		// ï¿½×´ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ò¶«£ï¿½xï¿½á£©Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Yï¿½á£©ï¿½ï¿½ï¿½ï¿½zï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½×´ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Æ«×ªï¿½Ç£ï¿½demoï¿½ï¿½ï¿½Îª60ï¿½ï¿½
+		void RadarSpeedHeading(RadarSpeed &m_speed, RadarHeading &m_radarhead); 
+
+		//void RadarHeadings(RadarSpeed& m_speed, RadarHeading& m_radarhead);
+
 		void SetRadarHeight(double radar_height);
 		void SetCameraInstrinic(double fx, double fy, double cx, double cy);
 		void SetCameraDiff(double df1, double df2, double df3, double df4, double df5);
@@ -172,7 +196,7 @@ namespace UcitCalibrate
 		CalibrationTool();
 		virtual ~CalibrationTool();
 		std::vector<GpsWorldCoord> m_gpsworlds;
-		// ÓÃgps¼ÆËãµÃµ½µÄÊý¾Ý¹¹ÔìÒÔÏÂ
+		// ï¿½ï¿½gpsï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		
 		double m_PI;
 		double m_earthR;
