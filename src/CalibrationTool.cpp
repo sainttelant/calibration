@@ -24,9 +24,10 @@ namespace UcitCalibrate
 		, m_RadarRT()
 		, m_cameraRMatrix33()
 		, m_cameraRTMatrix44()
-		, m_blind()
+		
 	{
-
+		m_blind.b = 0;
+		m_blind.k = 0;
 	};
 
 	CalibrationTool:: ~CalibrationTool()
@@ -251,6 +252,7 @@ namespace UcitCalibrate
 					}
 					else if (BoxElement->ValueTStr()=="lat")
 					{
+
 						originpoll.latitude = atof(BoxElement->GetText());
 					}
 					BoxElement = BoxElement->NextSiblingElement();
@@ -845,6 +847,7 @@ namespace UcitCalibrate
 		{
 			GpsWorldCoord GpsWorldtmp;
 			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
+			//GpsWorldtmp.X = 2 * m_PI *(m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
 			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
 			GpsWorldtmp.Distance = m_gpsheights[i];
 			printf("P[%d]::Gps world:x=%.10f Gps World y=%.10f Distance of world=%.10f \n", i + 1, GpsWorldtmp.X, GpsWorldtmp.Y, \
@@ -933,7 +936,6 @@ namespace UcitCalibrate
 			Distance_W4.at<double>(0, 0) = temp.X;
 			Distance_W4.at<double>(1, 0) = temp.Y;
 			Distance_W4.at<double>(2, 0) = m_radarheight;
-			//Distance_W4.at<double>(2, 0) = temp.Distance;
 			Distance_W4.at<double>(3, 0) = 0;
 			radar_Dis = m_RadarRT.inv() * Distance_W4;
 			m_gpsworldcoord.X = radar_Dis.at<double>(0, 0);

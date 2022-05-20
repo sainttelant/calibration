@@ -12,7 +12,7 @@
 
 
 using namespace LOF;
-using namespace matplot;
+//using namespace matplot;
 
 
 using namespace UcitCalibrate;
@@ -20,10 +20,6 @@ using namespace UcitCalibrate;
 //#define readcalib
 //#define Readcalibratexml 
 #define  calibrateradar
-<<<<<<< HEAD
-
-=======
->>>>>>> chongqing
 #define writecalibratexml
 #define point_10
 
@@ -31,6 +27,7 @@ using namespace UcitCalibrate;
 #define project2pixeltest 1
 #define project2gpstest 1
 
+#define ManMade	0
 
 
 enum pixelDirection
@@ -372,7 +369,7 @@ int main()
 	// 设置挑选点
 	//vector<unsigned int> pickPointindex{1,2,3,4,5,6,7,8,9,10,11,12};
 	vector<unsigned int> pickPointindex;
-	bool rasac = true;
+	bool rasac = false;
 
 
 	// dont change wholeindex
@@ -381,6 +378,10 @@ int main()
 	std::map<int, Point3d> m_Measures;
 	vector<Point2d> boxPoints, validPoints;
 	
+
+
+
+
 
 
 
@@ -407,6 +408,11 @@ int main()
 	std::string calibrateplace = "";
 	// read from xml config
 
+
+	// 人工补点之类
+	vector<Point2d> ManMadePixels;
+	std::map<int, Point3d> ManMadeRadars;
+
 #ifndef  readcalib
 
 		m_Calibrations.ReadPickpointXml(m_xmlpath,
@@ -420,7 +426,30 @@ int main()
 		m_Measures,
 		originallpoll, m_ghostdis, camrainst,gpsheight,calibrateplace);
 
-		
+		int manPointsNum = 0;
+#if ManMade
+		cv::Point2d pixels1(1403.632, 375.81);
+		cv::Point2d pixels2(1516.587, 367.152);
+		cv::Point2d pixels3(1862.1045, 434.562);
+
+		cv::Point3d radars1(-3.600006, 67, reflectorheight);
+		cv::Point3d radars2(-7, 65.600037, reflectorheight);
+		cv::Point3d radars3(-13.199997, 52.600037, reflectorheight);
+
+
+
+		ManMadePixels.push_back(pixels1);
+		ManMadePixels.push_back(pixels2);
+		ManMadePixels.push_back(pixels3);
+
+		ManMadeRadars[0] = radars1;
+		ManMadeRadars[1] = radars2;
+		ManMadeRadars[2] = radars3;
+
+		manPointsNum = 3;
+
+#endif
+
 
 		//处理measures
 		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
@@ -536,6 +565,19 @@ int main()
 	}
 
 
+#if ManMade
+
+	for (size_t i = 0; i < manPointsNum; i++)
+	{
+		cv::circle(sourceImage, ManMadePixels[i], 8, Scalar(0, 100, 200),-2, LINE_AA);
+		int text_x = (int)(ManMadePixels[i].x - 30);
+		int text_y = (int)(ManMadePixels[i].y - 10);
+		sprintf(textbuf, "ManP:%d", i + 1);
+		putText(sourceImage, textbuf, cv::Point(text_x - 5, text_y - 8), 0, 1.5, Scalar(0, 100, 200), 2, 1);
+	}
+
+#endif
+
 	namedWindow("raw image", WINDOW_NORMAL);
 	
     // Step two Calculate the GPS 2 World
@@ -608,7 +650,7 @@ int main()
 
 
 
-	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick);
+	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick,gpsheights);
 	//m_Calibrations.Gps2worldcalib(m_Calibrations.gps_longPick,m_Calibrations.gps_latiPick, gpsheights);
 	// 增加手持gps
 
@@ -726,12 +768,14 @@ int main()
 
 #ifdef readcalib
 	// 全是使用读取的参数写进去
-	m_Calibrations.SetRadarHeight(1.4);
+	m_Calibrations.SetRadarHeight(1.2);
 	m_Calibrations.SetRadarRT44(m_rt44);
 	m_Calibrations.SetCameraRT44(m_crt44);
 	m_Calibrations.SetCameraRT33(m_crt33);
 	m_Calibrations.SetCameraTMatrix(m_crt31);
 	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
+
+	
 
 #endif
 
@@ -746,7 +790,7 @@ int main()
 		// gps 转化成世界坐标之后的点
 
 		Mat m_gps2world = Mat::ones(4, 1, cv::DataType<double>::type);
-		
+	
 		//3D to 2D////////////////////////////
 		Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
 		Mat RT_;
@@ -863,6 +907,28 @@ int main()
 			outfile << "calibrate good enough!" << endl;
 		}
 
+
+#if ManMade
+	
+		for (int i = 0; i < manPointsNum; i++)
+		{
+			GpsWorldCoord radar_input;
+			longandlat gpsresult;
+			radar_input.X = ManMadeRadars[i].x;
+			radar_input.Y = ManMadeRadars[i].y;
+			// input distance 有可能要修改
+			radar_input.Distance = 0;
+			// 反算雷达到gps
+			m_Calibrations.radarworld2Gps(radar_input, gpsresult);
+			printf("GPS:[%3.8f,%3.8f] \n", gpsresult.longtitude, gpsresult.latitude);
+			printf("GPS:[%3.8f,%3.8f] \n", gpsresult.longtitude, gpsresult.latitude);
+			printf("GPS:[%3.8f,%3.8f] \n", gpsresult.longtitude, gpsresult.latitude);
+			outfile <<fixed << setprecision(10) << gpsresult.longtitude << "\t" << gpsresult.latitude << std::endl;
+
+		}
+
+
+#endif
 	
 #if  project2pixeltest
 
@@ -939,7 +1005,34 @@ int main()
 
 		
 
-		//测试之前采的rtk  gps绝对坐标准不准,雷达反投影
+
+		// 测试航向角,正北为X正，东为世界的Y正 ：假如往西南方向跑
+		RadarSpeed m_raderspeed;
+		m_raderspeed.vx = -0.001429;
+		m_raderspeed.vy = 0.001120;
+		m_raderspeed.vz = 0;
+		RadarHeading m_heads;
+		m_Calibrations.RadarSpeedHeading(m_raderspeed,m_heads);
+
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading %s \n", m_heads.direction.c_str());
+		printf("heading V:%f \n", m_heads.speed_value);
+		printf("heading theta:%f \n", m_heads.theta);
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+		printf("heading infor<<<<<<<<>>>>>>>>>>>>>>>>>>> \n");
+
+#if project2pixeltest
+		std::vector<Point2d> gpsprojects;
+		//测试之前采的rtk  gps绝对坐标准不准,GPS反投影,绿色点
 		for (int i=1; i < mp_Gpslat.size()+1; i++)
 		{
 			GpsWorldCoord  m_gps;

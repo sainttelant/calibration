@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <vector>
 #include<exception>
-#include <matplot/matplot.h>
+//#include <matplot/matplot.h>
 
 namespace LOF{
 	class CPoint

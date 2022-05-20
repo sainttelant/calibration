@@ -1,0 +1,57 @@
+Current Generate time: 
+Fri May 20 12:25:58 2022
+
+Pick the Points:1 for calibration
+Pick the Points:2 for calibration
+Pick the Points:7 for calibration
+Pick the Points:8 for calibration
+
+
+it is a radar RT matrix first! 
+
+[-0.9105010392417308, -0.4135067805244891, 0, -0.7415064826981919;
+ -0.4135067805244896, 0.9105010392417309, 0, 2.370429668000888;
+ 4.930380657631325e-32, -1.540743955509789e-31, -1, 7.251357352211272e-30;
+ 0, 0, 0, 1]
+
+
+it is an Image RT matrix then! 
+
+
+[0.9330217832383779, 0.3598176159484382, 0.001278771230274839, 0.7488168335208518;
+ 0.05975759444194503, -0.1514473607718439, -0.9866573502598331, 5.345403633840821;
+ -0.3548230290006402, 0.9206492166772452, -0.1628055217810061, 12.2937812238068]
+
+Rotate33:[0.9330217832383779, 0.3598176159484382, 0.001278771230274839;
+ 0.05975759444194503, -0.1514473607718439, -0.9866573502598331;
+ -0.3548230290006402, 0.9206492166772452, -0.1628055217810061]
+
+
+CameraTmatrix:[0.7488168335208518;
+ 5.345403633840821;
+ 12.2937812238068]
+
+
+
+Error X not exceeding 20, while Error Y not exceeding 15 at least!!
+
+Point:0	error:X	0.266448	error:Y	0.272012
+Point:1	error:X	3.23404	error:Y	1.30555
+Point:2	error:X	73.2904	error:Y	16.7048
+Point:3	error:X	48.3062	error:Y	28.9694
+Point:4	error:X	50.1443	error:Y	34.8689
+Point:5	error:X	235.122	error:Y	22.6804
+Point:6	error:X	0.188505	error:Y	1.04707
+Point:7	error:X	76.3673	error:Y	8.20323
+
+
+Point:2	's	error exceeds requirement!!
+Point:3	's	error exceeds requirement!!
+Point:4	's	error exceeds requirement!!
+Point:5	's	error exceeds requirement!!
+Point:7	's	error exceeds requirement!!
+
+
+calibration's accuracy didn't satisfy requirement!!!
+
+calibrate failed!<<
