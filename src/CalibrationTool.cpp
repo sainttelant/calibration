@@ -931,8 +931,8 @@ namespace UcitCalibrate
 			temp.Y = 2 * m_PI * m_earthR * ((m_gpslongandlat.latitude - m_originlatitude) / 360);
 			//temp.Distance = sqrt(m_gpsworldcoord.X * m_gpsworldcoord.X + m_gpsworldcoord.Y * m_gpsworldcoord.Y);
 			temp.Distance = m_gpsworldcoord.Distance;
-			cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
-			cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
+			cv::Mat Distance_W4 = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+			cv::Mat radar_Dis = cv::Mat::ones(4, 1, cv::DataType<double>::type);
 			Distance_W4.at<double>(0, 0) = temp.X;
 			Distance_W4.at<double>(1, 0) = temp.Y;
 			Distance_W4.at<double>(2, 0) = m_radarheight;
@@ -947,7 +947,7 @@ namespace UcitCalibrate
 	bool CalibrationTool::CalculateBlind()
 	{
 		// 计算边界值，y = 0的对应的区域
-		Point2d raderpixelPoints, point1, pointend;
+		cv::Point2d raderpixelPoints, point1, pointend;
 		for (float i = -100; i < 100; i += 0.5)
 		{
 			UcitCalibrate::WorldDistance worldDistance;
@@ -1044,14 +1044,14 @@ namespace UcitCalibrate
 		}
 	}
 
-	void CalibrationTool::PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, Point2d>& imagesPixel)
+	void CalibrationTool::PickImagePixelPoints4PnPsolve(vector<unsigned int>pointsSet, std::map<int, cv::Point2d>& imagesPixel)
 	{
 		if (pointsSet.empty())
 		{
 			return;
 		}
 		imagePixel_pick.clear();
-		std::map<int, Point2d>::iterator iter = imagesPixel.begin();
+		std::map<int, cv::Point2d>::iterator iter = imagesPixel.begin();
 		for (int i = 0; i < pointsSet.size(); i++)
 		{
 			iter = imagesPixel.find(pointsSet[i]);
@@ -1147,7 +1147,7 @@ namespace UcitCalibrate
 		centerDst.y = double(dstSumY / pointsNum);
 		centerDst.z = double(dstSumZ / pointsNum);
 
-		//Mat::Mat(int rows, int cols, int type)
+		//cv::Mat::cv::Mat(int rows, int cols, int type)
 		cv::Mat srcMat(3, pointsNum, CV_64FC1);
 		cv::Mat dstMat(3, pointsNum, CV_64FC1);
 		//---Modify
@@ -1221,7 +1221,7 @@ namespace UcitCalibrate
 
 	}
 
-	bool CalibrationTool::SetCameraRT33(cv :: Mat CmRT33)
+	bool CalibrationTool::SetCameraRT33(cv::Mat CmRT33)
 		{
 			if (CmRT33.cols!=3 && CmRT33.rows!=3)
 		{
@@ -1251,7 +1251,7 @@ namespace UcitCalibrate
 		return true;
 	}
 
-	bool CalibrationTool::SetCameraTMatrix(cv :: Mat CTmatrix)
+	bool CalibrationTool::SetCameraTMatrix(cv::Mat CTmatrix)
 	{
 		m_cameraTMatrix = CTmatrix;
 		return true;
@@ -1292,28 +1292,28 @@ namespace UcitCalibrate
 	{
 		cv::Mat rvec1(3, 1, cv::DataType<double>::type);  //旋转向量
 		cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
-		m_cameraRMatrix = Mat::zeros(3, 1, cv::DataType<double>::type);
-		m_cameraTMatrix = Mat::zeros(3, 1, cv::DataType<double>::type);
-		m_cameraRMatrix33 = Mat::zeros(3, 3, cv::DataType<double>::type);
+		m_cameraRMatrix = cv::Mat::zeros(3, 1, cv::DataType<double>::type);
+		m_cameraTMatrix = cv::Mat::zeros(3, 1, cv::DataType<double>::type);
+		m_cameraRMatrix33 = cv::Mat::zeros(3, 3, cv::DataType<double>::type);
 		//调用 pnp solve 函数
 		if (useRTK)
 		{
 			if (rasac)
 			{
 				cv::solvePnPRansac(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-					m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+					m_cameraTMatrix, false, cv::SOLVEPNP_ITERATIVE);
 			}
 			else
 			{
 				if (pickPoints.size() > 4)
 				{
 					cv::solvePnP(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-						m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+						m_cameraTMatrix, false, cv::SOLVEPNP_ITERATIVE);
 				}
 				else
 				{
 					cv::solvePnP(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-						m_cameraTMatrix, false, SOLVEPNP_P3P);
+						m_cameraTMatrix, false, cv::SOLVEPNP_P3P);
 				}
 			}
 		}
@@ -1322,19 +1322,19 @@ namespace UcitCalibrate
 			if (rasac)
 			{
 				cv::solvePnPRansac(measures_pick, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-					m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+					m_cameraTMatrix, false, cv::SOLVEPNP_ITERATIVE);
 			}
 			else
 			{
 				if (pickPoints.size() > 4)
 				{
 					cv::solvePnP(measures_pick, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-						m_cameraTMatrix, false, SOLVEPNP_ITERATIVE);
+						m_cameraTMatrix, false, cv::SOLVEPNP_ITERATIVE);
 				}
 				else
 				{
 					cv::solvePnP(measures_pick, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-						m_cameraTMatrix, false, SOLVEPNP_P3P);
+						m_cameraTMatrix, false, cv::SOLVEPNP_P3P);
 				}
 			}
 		}
@@ -1344,19 +1344,19 @@ namespace UcitCalibrate
 		CalculateBlind();
 	}
 
-	void CalibrationTool::Pixel2Distance31(Point2d pixels, WorldDistance &Distances)
+	void CalibrationTool::Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances)
 	{
 	
 		cv::Point3d tmp;
 		CameraPixel2World(pixels, tmp);
-		cv::Mat Distance_W4 = Mat::ones(4, 1, cv::DataType<double>::type);
-		Point3d Distance_world;
+		cv::Mat Distance_W4 = cv::Mat::ones(4, 1, cv::DataType<double>::type);
+		cv::Point3d Distance_world;
 		printf("tmp(%.3f,%.3f,%.3f)\n", tmp.x, tmp.y, tmp.z);
 		Distance_W4.at<double>(0, 0) = tmp.x;
 		Distance_W4.at<double>(1, 0) = tmp.y;
 		Distance_W4.at<double>(2, 0) = tmp.z;
 		Distance_W4.at<double>(3, 0) = 0;
-		cv::Mat radar_Dis = Mat::ones(4, 1, cv::DataType<double>::type);
+		cv::Mat radar_Dis = cv::Mat::ones(4, 1, cv::DataType<double>::type);
 		cout << "radar inverse:" << m_RadarRT.inv() << endl;
 		radar_Dis = m_RadarRT.inv() * Distance_W4;
 		
