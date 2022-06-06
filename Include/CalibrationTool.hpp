@@ -130,7 +130,11 @@ namespace UcitCalibrate
 		void CameraPixel2World(cv::Point2d m_pixels, cv::Point3d &m_world);
 		void CameraPixel2Gps(cv::Point2d m_pixels, longandlat& m_longandlat);
 
+		// 雷达输入为（X，Y, Z默认为0)
+		void RadarDetect2Pixel(cv::Point2d &m_radars, cv::Point2d &m_pixels);
 
+		// 从GPS直接到像素
+		void Gps2Pixel(longandlat &m_gps, cv::Point2d &m_pixels);
 
 		// pixel 折算到3*1的距离值, 1: camerapixel points 2：输出x,y,z值，计算像素到雷达坐标系
 		void Pixel2Distance31(cv::Point2d pixels, WorldDistance &Distances);

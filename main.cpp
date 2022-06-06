@@ -1,4 +1,4 @@
-﻿
+
 
 #include "CalibrationTool.hpp"
 #include "ParameterBase.hpp"
@@ -334,16 +334,7 @@ int writeXmlFile(cv::Mat *raderRT44,
 
 
 
-
-
-
-
-
-
-
-
-
-int main()
+int main(int argc, char* argv[])
 {
 	////// 首先通过标定板的图像像素坐标以及对应的世界坐标，通过PnP求解相机的R&T//////
 	// 准备的是图像上的像素点
@@ -360,15 +351,12 @@ int main()
 	time_t now = time(0);
 	// 把 now 转换为字符串形式
 	
-
-
-	
 	CalibrationTool  &m_Calibrations = CalibrationTool::getInstance();
 	//CalibrationTool  &m_WholeCalibrations = CalibrationTool::getInstance();
 	// 设置挑选点
 	//vector<unsigned int> pickPointindex{1,2,3,4,5,6,7,8,9,10,11,12};
 	vector<unsigned int> pickPointindex;
-	bool rasac = true;
+	
 
 
 	// dont change wholeindex
@@ -417,10 +405,19 @@ int main()
 		originallpoll, m_ghostdis, camrainst,gpsheight,calibrateplace);
 
 		
-
+			
 		//处理measures
 		std::map<int, Point3d>::iterator iter_begin = m_Measures.begin();
 		std::map<int, Point3d>::iterator iter_end = m_Measures.end();
+
+		/*for (int i=0; i< m_Measures.size();i++)
+		{
+			double ydist = m_Measures[i].y;
+			double ynew = sqrt(ydist * ydist - pow(raderheight - reflectorheight, 2));
+			m_Measures[i].y = ynew;
+			cout << ynew << "newy of iter:" << iter_begin->second.y << endl;
+		}*/
+
 		/*for (; iter_begin != iter_end; iter_begin++)
 		{
 			double ydist = iter_begin->second.y;
@@ -476,7 +473,9 @@ int main()
 			}
 		}
 
+
 		for (int i = 0; i < 3; i++)
+
 		{
 			for (int j = 0; j < 3; j++)
 			{
@@ -517,6 +516,8 @@ int main()
     // 写字
     
     char textbuf[256];
+
+
 
 	// draw 原始的取点
 	vector<Point2d>::iterator iter_origpixel = boxPoints.begin();
@@ -595,11 +596,13 @@ int main()
 
 
 	// 最终选定的高程的点
-	std::vector<double> gpsheights;
+	std::vector<double> gpsheights; 
 	for (int j = 0; j < pickPointindex.size(); j++)
 	{
 		gpsheights.push_back(gpsheight[pickPointindex[j] - 1]);
 	}
+
+
 
 
 
@@ -638,6 +641,8 @@ int main()
 	//cv::Mat RT = m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
 		//m_Calibrations.GetWorldBoxPoints());
 
+
+	std::vector<cv::Point3d> v_debug = m_Calibrations.GetMeasureMentPoint();
 	cv::Mat RT = m_Calibrations.Get3DR_TransMatrix(m_Calibrations.GetMeasureMentPoint(), \
 		Gpsworld4radarcalibrate);
 
@@ -645,7 +650,7 @@ int main()
 	{
 		for (int c = 0; c < RT.cols; c++)
 		{
-			printf("Radar's RT Matrix:%f, ", RT.at<double>(r, c));
+			printf("RadarRT:%f, ", RT.at<double>(r, c));
 
 		}
 		printf("\n");
@@ -668,9 +673,7 @@ int main()
 	printf("**************************************\n");
 #endif
 	
-		
 	
-
 	// camera relevant 
 	// camera inside parameters
    
@@ -702,9 +705,6 @@ int main()
 	cv::Mat rvec1(3, 1, cv::DataType<double>::type);  //旋转向量
 	cv::Mat tvec1(3, 1, cv::DataType<double>::type);  //平移向量
 
-
-
-
 	m_Calibrations.SetRadarHeight(reflectorheight);
 	m_Calibrations.SetCoordinateOriginPoint(originallpoll.longtitude, originallpoll.latitude);
 
@@ -714,15 +714,16 @@ int main()
 
 
 	bool useRTK = true;
+	// 要不要去除可能的不准的标定
+	bool rasac = false;
 	m_Calibrations.CalibrateCamera(rasac, useRTK, pickPointindex);
 
-
-
-
 #ifdef readcalib
+
 	// 全是使用读取的参数写进去
 	m_Calibrations.SetRadarHeight(1.2);
 	m_Calibrations.SetRadarRT44(m_rt44);
+
 	m_Calibrations.SetCameraRT44(m_crt44);
 	m_Calibrations.SetCameraRT33(m_crt33);
 	m_Calibrations.SetCameraTMatrix(m_crt31);
@@ -730,15 +731,9 @@ int main()
 
 	
 
+
+
 #endif
-
-
-
-	
-
-
-	
-	
 
 		// gps 转化成世界坐标之后的点
 
@@ -748,7 +743,7 @@ int main()
 		Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
 		Mat RT_;
 		hconcat(m_Calibrations.m_cameraRMatrix33, m_Calibrations.m_cameraTMatrix, RT_);
-		cout << "Image RT_" << RT_ << endl;
+		cout << "Camera:RT" << RT_ << endl;
 		outfile << "it is an Image RT matrix then! \n\n" << endl;
 		outfile << RT_ <<"\n"<< endl;
 
@@ -804,7 +799,7 @@ int main()
 			validPoints.push_back(raderpixelPoints); 
 			std::string raders = "radarPoints";
 
-			cv::circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
+			//cv::circle(sourceImage, raderpixelPoints, 6, Scalar(0, 0, 255), -1, LINE_AA);
 		}
 		for (int i = 0; i < boxPoints.size(); i++)
 		{
@@ -860,14 +855,28 @@ int main()
 			outfile << "calibrate good enough!" << endl;
 		}
 
+
 	
 #if  project2pixeltest
-
-		// 雷达反投影,应该也要先乘以雷达的逆矩阵
+		// 雷达反投影,应该也要先乘以雷达的逆矩阵,棕色
 		//  雷达坐标系返回的点是左正右负, 反投影雷达要加高度z，记住
 		std::vector<Point2d> radarprojectpixle;
+		Point2d radpixe, radarvalue;
+
+
+			/*	for (auto &k:m_Measures)
+				{
+					radarvalue.x = k.second.x;
+					radarvalue.y =k.second.y;
+					m_Calibrations.RadarDetect2Pixel(radarvalue, radpixe);
+					cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 150), -1, LINE_8);
+					radarprojectpixle.push_back(radpixe);
+				}*/
+
+
 		for (; iter_begin != iter_end; iter_begin++)
 		{
+
 			Point3d radartmp;
 			radartmp.x = iter_begin->second.x;
 			radartmp.y = iter_begin->second.y;
@@ -878,7 +887,6 @@ int main()
 			GpsWorldCoord radar_input, radarworld;
 			radar_input.X = radartmp.x;
 			radar_input.Y = radartmp.y;
-			// input distance 有可能要修改
 			radar_input.Distance = 0;
 			// 反算雷达到gps
 			m_Calibrations.radarworld2Gps(radar_input, gpsresult);
@@ -895,7 +903,7 @@ int main()
 			radardistance.Height = radarworld.Distance;
 
 			m_Calibrations.Distance312Pixel(radardistance, radpixe);
-			cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 100), -1, LINE_8);
+			cv::circle(sourceImage, radpixe, 8, Scalar(0, 0, 150), -1, LINE_8);
 			radarprojectpixle.push_back(radpixe);
 
 		}
@@ -964,13 +972,14 @@ int main()
 #if project2pixeltest
 		std::vector<Point2d> gpsprojects;
 		//测试之前采的rtk  gps绝对坐标准不准,GPS反投影,绿色点
+
+
 		for (int i=1; i < mp_Gpslat.size()+1; i++)
 		{
 			GpsWorldCoord  m_gps;
 			longandlat m_longandtemp;
 			m_longandtemp.longtitude = mp_Gpslong[i];
 			m_longandtemp.latitude = mp_Gpslat[i];
-
 			m_Calibrations.Gps2radarworld(m_longandtemp, m_gps);
 			Point3d radartemp;
 			radartemp.x = m_gps.X;
@@ -1040,7 +1049,7 @@ int main()
 			if (name_score_vec[i].second > 100)
 			{
 				cv::putText(sourceImage, display, Point(50, 200 + i * 50), 0, 1.6, Scalar(0, 0, 255), 3);
-				cv::putText(sourceImage, "error exceeds requirement", Point(600, 200 + i * 50), 0, 1.5, Scalar(0, 0, 255), 3);
+				//cv::putText(sourceImage, "error exceeds requirement", Point(600, 200 + i * 50), 0, 1.5, Scalar(0, 0, 255), 3);
 			}
 			else
 			{
@@ -1119,6 +1128,7 @@ int main()
 			GpsWorldCoord radar_input, radarworld;
 			radar_input.X = radartmp.x;
 			radar_input.Y = radartmp.y;
+			
 			// input distance 有可能要修改
 			radar_input.Distance = 0;
 			// 反算雷达到gps
@@ -1136,7 +1146,7 @@ int main()
 		// 写入KML files
 		std::string m_filepath = "gps.KML";
 		GpsKmlGenerator::Instance().writegpskml(mp_inputs,3, pointsize,m_filepath);
-
+		
 		for (int j=0; j<3;j++)
 		{
 			if (mp_inputs[j].v_lonandlat!=nullptr)

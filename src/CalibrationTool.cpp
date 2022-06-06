@@ -884,6 +884,7 @@ namespace UcitCalibrate
 		m_longandlat.longtitude = (m_worldtmp.x * 360) / (2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val))) + m_originlongitude;
 
 	}
+	
 
 	void CalibrationTool::radarworld2Gps(GpsWorldCoord &m_gpsworldcoord, longandlat &m_gpslongandlat)
 	{
@@ -1229,7 +1230,7 @@ namespace UcitCalibrate
 			m_cameraRMatrix33 = CmRT33;
 			//printf("Manual Set cameraRT33 successful!!!!!!!\n");
 		}
-		return true;
+			return true;
 		}
 
 	bool CalibrationTool::SetRadarRT44(cv::Mat RadRT44)
@@ -1271,7 +1272,7 @@ namespace UcitCalibrate
 		cv::Mat tempMat2 = m_cameraRMatrix33.inv() * m_cameraTMatrix;
 		double tmp2 = tempMat2.at<double>(2,0);
 		double tmp = tempMat.at<double>(2, 0);
-
+	
 		s = m_radarheight + tmp2;
 		s /= tmp;
 		//cout << "s : " << s << endl;
@@ -1309,7 +1310,7 @@ namespace UcitCalibrate
 				else
 				{
 					cv::solvePnP(m_worldBoxPoints, imagePixel_pick, m_cameraintrisic, m_cameradiff, m_cameraRMatrix, \
-						m_cameraTMatrix, false, SOLVEPNP_P3P);
+						m_cameraTMatrix, false, SOLVEPNP_SQPNP);
 				}
 			}
 		}
@@ -1362,6 +1363,24 @@ namespace UcitCalibrate
 		cout << "Distance:X" << Distances.X << "\t" << "Distance:Y" << Distances.Y << endl;
 	}
 
+	void CalibrationTool::RadarDetect2Pixel(cv::Point2d& m_radars, cv::Point2d& m_pixels)
+	{
+		cv::Mat RadarPoint = Mat::ones(4, 1, cv::DataType<double>::type);
+		cv::Mat world_point = Mat::ones(4, 1, cv::DataType<double>::type);
+		cv::Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
+
+		RadarPoint.at<double>(0, 0) = m_radars.x;
+		RadarPoint.at<double>(1, 0) = m_radars.y;
+		RadarPoint.at<double>(2, 0) = 0;
+		world_point = m_RadarRT * RadarPoint;
+		cout << "world Points :  " << world_point << endl;
+		image_points = m_cameraintrisic * m_cameraRTMatrix44 * world_point;
+		m_pixels.x = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
+		m_pixels.y = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
+
+	}
+
+	
 	void CalibrationTool::Distance312Pixel(WorldDistance Distances, cv::Point2d& pixels)
   {
     cv::Mat RadarPoint = cv::Mat::ones(4, 1, cv::DataType<double>::type);
