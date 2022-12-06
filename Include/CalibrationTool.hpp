@@ -105,7 +105,8 @@ namespace UcitCalibrate
 
 		bool ReadCalibrateParam(std::string m_xmlpath,
 			cv::Mat &raderRT44, 
-			cv::Mat &cameraRT44, 
+			cv::Mat &cameraRT44,
+			cv::Mat &cameraRT34,
 			cv::Mat &cameraRT33, 
 			cv::Mat &cameraRT31,
 			longandlat& originpoll,
@@ -120,9 +121,6 @@ namespace UcitCalibrate
 			std::vector<double>& height, \
 			std::vector<cv::Point3d> &Gpsworld4radar);
 
-		void Gps2worldcalib(std::vector<double>& P1_lo, \
-			std::vector<double>& P1_la, \
-			std::vector<double>& height);
 		// gps坐标转世界坐标系，不计算高度的，存到calibratetool 成员里面
 		void Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la, std::vector<double>& m_gpsheights);
 		void WorldCoord2Gps(std::vector<longandlat> &m_longandlat,std::vector<GpsWorldCoord> &m_gpsworld);

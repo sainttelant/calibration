@@ -336,6 +336,87 @@ int writeXmlFile(cv::Mat *raderRT44,
 
 
 
+int main_02()
+{
+	printf("计算camera calibration for centernet \n");
+	ofstream outfile("ret.txt", ios::trunc);
+	std::string m_calixml = "shenwucalib.xml";
+	cv::Mat m_rt44, m_crt44, m_crt33, m_crt31;
+
+	longandlat originallpoll;
+	std::vector<double> m_ghostdis;
+	cv::Mat camrainst;
+	double shouchigao;
+	double radargaodu;
+	cv::Mat results = cv::Mat::zeros(3, 4, cv::DataType<double>::type);
+
+	CalibrationTool::getInstance().ReadCalibrateParam(m_calixml, m_rt44, m_crt44, results, m_crt33, m_crt31,
+		originallpoll, m_ghostdis, camrainst, shouchigao, radargaodu);
+	
+	
+
+	for (int i = 0; i < m_ghostdis.size(); i++)
+
+	{
+		printf("dist %f \n", m_ghostdis[i]);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			double value = camrainst.at<double>(i, j);
+			printf("instrinc values:[%.16f] \n", value);
+		}
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			double value = m_rt44.at<double>(i, j);
+			printf("rader44 values:[%.16f] \n", value);
+		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			double value = m_crt44.at<double>(i, j);
+			printf("camera34 values:[%.16f] \n", value);
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			double value = m_crt33.at<double>(i, j);
+			printf("camera33 values:[%.16f] \n", value);
+		}
+	}
+
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 1; j++)
+		{
+			double value = m_crt31.at<double>(i, j);
+			printf("camera31 values:[%.16f] \n", value);
+		}
+	}
+	// 测试转eigen
+		
+	std::cout << "instrinct:" << camrainst << std::endl;
+	std::cout << "results:" << results << std::endl;
+
+	cv::Mat ret = camrainst * results;
+	std::cout << "ret" << ret << std::endl;
+	outfile << ret << std::endl;
+	outfile.close();
+	system("PAUSE");
+	return 0;
+}
 
 
 
@@ -469,7 +550,7 @@ int main()
 #endif
 	
 
-
+	
 
 #ifdef Readcalibratexml
 		cv::Mat m_rt44, m_crt44, m_crt33, m_crt31;
@@ -548,6 +629,7 @@ int main()
 
 	cv::Mat xiezitu(cv::Size(800, 1440),CV_8UC3);
     // 写字
+	cv::Mat hints(cv::Size(800, 1440), CV_8UC3);
     
     char textbuf[256];
 
@@ -555,15 +637,18 @@ int main()
 	vector<cv::Point2d>::iterator iter_origpixel = boxPoints.begin();
 	vector<cv::Point2d>::iterator iter_origpixel_e = boxPoints.end();
 
+
 	for (int i = 0; i < boxPoints.size(); ++i)
 	{
 		circle(sourceImage, boxPoints[i], 8, cv::Scalar(100, 100, 0), -1, cv::LINE_AA);
         int text_x = (int)(boxPoints[i].x - 30);
         int text_y = (int)(boxPoints[i].y - 10);
-        sprintf(textbuf, "RP:%d",i+1);
+        sprintf(textbuf, "p:%d",i+1);
+		//putText::putTextZH(sourceImage, textbuf, cv::Point(text_x - 15, text_y - 8), cv::Scalar(0, 100, 0), 30, "宋体");
         cv::putText(sourceImage, textbuf, cv::Point(text_x-5, text_y-8), 0,1, cv::Scalar(0,0,255),2,1);
 	}
 
+	putText::putTextZH(hints, "深蓝色点是采集的原始像素点", cv::Point(100, 100), cv::Scalar(100, 100, 0), 40, "隶书");
 
 #if ManMade
 
@@ -651,7 +736,6 @@ int main()
 
 
 	m_Calibrations.Gps2WorldCoord(m_Calibrations.gps_longPick, m_Calibrations.gps_latiPick,gpsheights);
-	//m_Calibrations.Gps2worldcalib(m_Calibrations.gps_longPick,m_Calibrations.gps_latiPick, gpsheights);
 	// 增加手持gps
 
 	
@@ -861,7 +945,7 @@ int main()
 			printf("distancepixle[%d]:%f \n", i, recorddistance.pixeldistance);
 		}
 #endif
-		
+		putText::putTextZH(hints, "红色点是像素点经过矩阵反投影的值", cv::Point(100, 200), cv::Scalar(0, 0, 255), 40, "隶书");
 
 
 
@@ -993,6 +1077,8 @@ int main()
 			//cv::putText(xiezitu, dayindir, cv::Point(100, 100 + i * 50), 0, 1, cv::Scalar(255, 0, 0), 3);
 		}
 
+		putText::putTextZH(hints, "棕色是雷达值投影到图像的值", cv::Point(100, 300), cv::Scalar(0, 0, 100), 40, "隶书");
+
 		if ((float)Nonbiasnum/(float)boxPoints.size() > 0.2)
 		{
 			putText::putTextZH(xiezitu, "雷达返投过多的偏离点，需要重新采点",\
@@ -1018,6 +1104,7 @@ int main()
 		}
 		cv::namedWindow("debugoffset", 0);
 		cv::imshow("debugoffset", xiezitu);
+		
 		cv::waitKey(0);
 		cv::destroyWindow("debugoffset");
 
@@ -1086,7 +1173,7 @@ int main()
 			printf("distance GPSproject[%d]:%f \n", i, recorddistance.gpsdistance);
 		}
 
-
+		putText::putTextZH(hints, "绿色是GPS投影到图像的值", cv::Point(100, 400), cv::Scalar(0, 255, 0), 40, "隶书");
 		// sum up overall errors 
 		std::map<string, double> anverage_distance;
 		vector<meandistance>::iterator iter_mean_b = error_means.begin();
@@ -1279,7 +1366,7 @@ int main()
 #endif
 		
 	
-
+	cv::imshow("hints", hints);
 	cv::imwrite("save.jpg", sourceImage);
 	cv::imshow("raw image", sourceImage);
 	cv::waitKey(0);

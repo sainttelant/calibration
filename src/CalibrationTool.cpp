@@ -87,12 +87,12 @@ namespace UcitCalibrate
 
 		if (vx_project!=0)
 		{
-			if (vx_project > 0 && vy_project > 0)
+			if (vx_project > 0 && vy_project >= 0)
 			{
 				m_radarhead.direction = "NorthEast runs";
 				m_radarhead.theta = 90 - abs(deg(atan(vy_project/vx_project)));
 			}
-			if (vx_project < 0 && vy_project>0)
+			if (vx_project < 0 && vy_project>=0)
 			{
 				m_radarhead.direction = "NorthWest runs";
 				m_radarhead.theta = 270 + abs(deg(atan(vy_project/vx_project)));
@@ -450,6 +450,7 @@ namespace UcitCalibrate
 	bool CalibrationTool::ReadCalibrateParam(std::string m_xmlpath, 
 		cv::Mat &raderRT44, 
 		cv::Mat &cameraRT44, 
+		cv::Mat &cameraRT34,
 		cv::Mat &cameraRT33, 
 		cv::Mat &cameraRT31,
 		longandlat& originpoll,
@@ -472,6 +473,7 @@ namespace UcitCalibrate
 		// ≥ı ºªØmatæÿ’Û
 		raderRT44 = cv::Mat::eye(4, 4, cv::DataType<double>::type);
 		cameraRT44 = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
+		cameraRT34 = cv::Mat::zeros(3, 4, cv::DataType<double>::type);
 		cameraRT31 = cv::Mat::zeros(3, 1, cv::DataType<double>::type);
 		cameraRT33 = cv::Mat::ones(3, 3, cv::DataType<double>::type);
 		camerainstrinic = cv::Mat::eye(3, 3, cv::DataType<double>::type);
@@ -515,6 +517,10 @@ namespace UcitCalibrate
 								double value = atof(BoxElement->GetText());
 								cout << "get value from calibrate xml:" << value << endl;
 								cameraRT44.at<double>(rows,cols) = value;
+								if (rows != 3)
+								{
+									cameraRT34.at<double>(rows, cols) = value;
+								}
 								BoxElement = BoxElement->NextSiblingElement();
 							}
 						}
@@ -804,33 +810,6 @@ namespace UcitCalibrate
 		printf("******************* \n");
 		
 	}
-
-	void CalibrationTool::Gps2worldcalib(std::vector<double>& P1_lo,
-		std::vector<double>& P1_la,
-		std::vector<double>& height)
-	{
-		if (P1_la.size() != P1_lo.size())
-		{
-			printf("input the longitude and latitude can't be paired!!! return");
-			return;
-		}
-		m_gpsworlds.clear();
-		double val = m_PI / 180.0;
-
-		for (int i = 0; i < P1_la.size(); i++)
-		{
-			GpsWorldCoord GpsWorldtmp;
-			GpsWorldtmp.X = 2 * m_PI * (m_earthR_Polar * cos(m_originlatitude * val)) * ((P1_lo[i] - m_originlongitude) / 360);
-			GpsWorldtmp.Y = 2 * m_PI * m_earthR * ((P1_la[i] - m_originlatitude) / 360);
-			GpsWorldtmp.Distance = height[i];
-			
-			m_gpsworlds.push_back(GpsWorldtmp);
-		}
-
-		printf("******************* \n");
-	}
-
-
 
 	void CalibrationTool::Gps2WorldCoord(std::vector<double> P1_lo, std::vector<double> P1_la ,\
 		std::vector<double>& m_gpsheights)
@@ -1364,6 +1343,7 @@ namespace UcitCalibrate
 		Distances.Y = radar_Dis.at<double>(1, 0);
 		Distances.Height = radar_Dis.at<double>(2, 0);
 		cout << "Distance:X" << Distances.X << "\t" << "Distance:Y" << Distances.Y << endl;
+
 	}
 
 	void CalibrationTool::Gps2Pixel(GpsWorldCoord& m_gpscoord, cv::Point2d& pixels)
@@ -1447,11 +1427,8 @@ namespace UcitCalibrate
     pixels.x = D_Points.at<double>(0, 0);
     pixels.y = D_Points.at<double>(1, 0);
 
-	pixels.x = pixels.x;
-	pixels.y = pixels.y;
 
-	pixels.x = pixels.x;
-	pixels.y = pixels.y;
+
     //std::string raders = "radarPoints";
     //std::cout << "Pixel_2D_X:\t" << pixels.x << "\t" << "Pixel_2D_Y:\t" << pixels.y << std::endl;
     //circle(sourceImage, raderpixelPoints, 10, Scalar(200, 0, 255), -1, LINE_AA);
